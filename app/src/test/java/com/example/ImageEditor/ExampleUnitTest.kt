@@ -1,4 +1,4 @@
-package com.example.ImageEditor
+package com.example.imageeditor
 
 import org.junit.Test
 

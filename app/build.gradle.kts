@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.photoeditor"
+    namespace = "com.example.imageeditor"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.photoeditor"
+        applicationId = "com.example.imageeditor"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

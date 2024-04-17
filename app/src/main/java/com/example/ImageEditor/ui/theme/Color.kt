@@ -1,4 +1,4 @@
-package com.example.ImageEditor.ui.theme
+package com.example.imageeditor.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
