@@ -61,6 +61,9 @@ fun ImageEditorScreen() {
         ) {
             TextButton(
                 onClick = { selectedOption = "Save" },
+                modifier = Modifier
+                    .width (100.dp)
+                    .height (60.dp)
             ) {
                 Text(
                     text = "Save",
@@ -71,6 +74,9 @@ fun ImageEditorScreen() {
 
             TextButton(
                 onClick = { selectedOption = "Cancel" },
+                modifier = Modifier
+                    .width (100.dp)
+                    .height (60.dp)
             ) {
                 Text(
                     text = "Cancel",
@@ -145,7 +151,6 @@ fun ImageEditorScreen() {
                 .fillMaxWidth()
                 .padding(15.dp)
                 .horizontalScroll(scrollState),
-            horizontalArrangement = Arrangement.Absolute.Left
         ) {
 
             IconButton(
