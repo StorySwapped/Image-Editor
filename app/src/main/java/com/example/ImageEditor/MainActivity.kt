@@ -3,11 +3,14 @@ package com.example.imageeditor
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -95,7 +98,8 @@ fun ImageEditorScreen() {
         ) {
             IconButton(
                 onClick = {
-                    // TODO: Implement the function that will handle image picking
+                    ImageView()
+
                 },
                 modifier = Modifier
                     .size(100.dp)
@@ -148,9 +152,8 @@ fun ImageEditorScreen() {
         // Editing Options Section
         Row(
             modifier = Modifier
-                .fillMaxWidth()
                 .padding(10.dp)
-                .horizontalScroll(scrollState),
+                .horizontalScroll(scrollState)
         ) {
 
             IconButton(
@@ -230,17 +233,17 @@ fun ImageEditorScreen() {
 
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(scrollState),
+                .horizontalScroll(scrollState, true)
+                ,
         ) {
             Text(
-                text = "     Basic Editing      ",
+                text = "      Basic Editing      ",
                 style = TextStyle(fontSize = 13.sp), // Sets the font size to 24sp
                 color = Color.White
             )
 
             Text(
-                text = "Advance Editing   ",
+                text = " Advance Editing   ",
                 style = TextStyle(fontSize = 13.sp),
                 color = Color.White
             )
@@ -252,7 +255,7 @@ fun ImageEditorScreen() {
             )
 
             Text(
-                text = "   Background  ",
+                text = "    Background  ",
                 style = TextStyle(fontSize = 13.sp),
                 color = Color.White
             )
@@ -281,6 +284,10 @@ fun ImageEditorScreen() {
         ) {}
 
     }
+}
+
+fun ImageView() {
+    TODO("Not yet implemented")
 }
 
 @Composable
@@ -312,7 +319,7 @@ fun ImageUploadSection() {
             modifier = Modifier.align(Alignment.TopEnd)
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.add_photo), // Replace with your image resource
+                painter = painterResource(id = R.drawable.add_photo),
                 contentDescription = "Add Image"
             )
         }
