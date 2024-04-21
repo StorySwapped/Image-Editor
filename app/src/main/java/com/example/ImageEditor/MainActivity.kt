@@ -1,6 +1,7 @@
 package com.example.imageeditor
 
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -45,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.example.imageeditor.ui.theme.ImageEditorTheme
 import androidx.compose.ui.graphics.painter.Painter
 import android.net.Uri
+import android.provider.MediaStore
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.State
 import androidx.compose.ui.geometry.Size
@@ -53,14 +55,13 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 
 
 class MainActivity : ComponentActivity() {
@@ -73,6 +74,7 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = Color.Black // Set the background color to black
+
                 ) {
                     ImageEditorScreen()
                 }
@@ -81,26 +83,21 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
 @Composable
 fun ImageEditorScreen() {
-    val selectedOption by remember { mutableStateOf("") }
-    val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            // Handle the returned Uri, e.g., show in the UI or store it
-            // This could involve updating a ViewModel or UI state
-        }
-    }
-
+    val viewModel: ImageViewModel = viewModel()
     Column(modifier = Modifier.fillMaxSize()) {
-        HeaderSection(selectedOption)
-        ImageUploadSection(selectedOption)
-        EditingOptions(selectedOption)
+        HeaderSection(viewModel)
+        ImagePreviewSection(viewModel)
+        EditingOptions(viewModel)
     }
 }
 
-@Composable
-fun HeaderSection(selectedOption: String) {
 
+@Composable
+fun HeaderSection(viewModel: ImageViewModel) {
+    val context = LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -108,46 +105,44 @@ fun HeaderSection(selectedOption: String) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         TextButton(
-            onClick = {  },
+            onClick = { viewModel.saveImageToGallery(context) },
             modifier = Modifier
                 .width(100.dp)
                 .height(60.dp)
         ) {
             Text(
                 text = "Save",
-                style = TextStyle(fontSize = 20.sp), // Sets the font size to 24sp
+                style = TextStyle(fontSize = 20.sp),
                 color = Color.White
             )
         }
 
         TextButton(
-            onClick = {  },
+            onClick = { viewModel.clearCurrentImage() },
             modifier = Modifier
                 .width(100.dp)
                 .height(60.dp)
         ) {
             Text(
                 text = "Cancel",
-                style = TextStyle(fontSize = 20.sp), // Sets the font size to 24sp
+                style = TextStyle(fontSize = 20.sp),
                 color = Color.White
             )
         }
     }
 }
 
+
 @Composable
-fun ImageUploadSection(selectedOption: String) {
+fun ImagePreviewSection(imageModel: ImageViewModel) {
     val context = LocalContext.current
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
-            // Assuming image data is returned as Uri in data
-            imageUri = result.data?.data
+        if (result.resultCode == Activity.RESULT_OK) {
+            imageModel.imageUri = result.data?.data
         }
     }
-    val imageModel = viewModel<ImageViewModel>()
 
     Box(
         modifier = Modifier
@@ -155,36 +150,39 @@ fun ImageUploadSection(selectedOption: String) {
             .size(400.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Display the selected image or show the button if no image is selected
-        imageUri?.let { uri ->
+        // Observe the imageUri from the ViewModel
+        imageModel.imageUri?.let { uri ->
             Image(
-
                 painter = rememberAsyncImagePainter(uri, imageModel, context),
                 contentDescription = "Displayed Image",
+                modifier = Modifier.fillMaxSize() // Make the image fill the box
             )
         } ?: run {
+            // Show button to pick an image if none is selected
             IconButton(
                 onClick = {
-                    // Create an intent to pick an image
+                    // Launch picker to select an image
                     val pickImageIntent = Intent(Intent.ACTION_PICK).apply {
                         type = "image/*"
                     }
                     imagePickerLauncher.launch(pickImageIntent)
                 },
-                modifier = Modifier.size(70.dp)
+                modifier = Modifier.size(60.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.add_photo),
                     contentDescription = "Add Image",
-                    tint = Color.White
+                    tint = Color.White,
+                    modifier = Modifier.size(50.dp)
                 )
             }
         }
     }
 }
 
+
 @Composable
-fun EditingOptions(selectedOption: String) {
+fun EditingOptions(selectedOption: ImageViewModel) {
 
     val scrollState = rememberScrollState()
 
@@ -193,12 +191,12 @@ fun EditingOptions(selectedOption: String) {
             .fillMaxWidth()
             .padding(10.dp),
 
-        horizontalArrangement = Arrangement.Absolute.SpaceAround
+        horizontalArrangement = Arrangement.Center
     ) {
 
         IconButton(
             onClick = { selectedOption("Undo") },
-            modifier = Modifier.size(30.dp)  // Set the size of the IconButton
+            modifier = Modifier.size(40.dp)  // Set the size of the IconButton
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.undo),
@@ -210,7 +208,7 @@ fun EditingOptions(selectedOption: String) {
 
         IconButton(
             onClick = { selectedOption("Redo") },
-            modifier = Modifier.size(30.dp)
+            modifier = Modifier.size(40.dp)
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.redo),
@@ -356,6 +354,7 @@ fun EditingOptions(selectedOption: String) {
 }
 
 class ImageViewModel : ViewModel() {
+    var imageUri by mutableStateOf<Uri?>(null)
     private var _imageBitmap = mutableStateOf<ImageBitmap?>(null)
     val imageBitmap: State<ImageBitmap?> = _imageBitmap
 
@@ -369,6 +368,27 @@ class ImageViewModel : ViewModel() {
                 }
             }
         }
+    }
+    fun saveImageToGallery(context: Context) {
+        imageUri?.let { uri ->
+            val contentResolver = context.contentResolver
+            val contentValues = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, "Image_${System.currentTimeMillis()}.jpg")
+                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            }
+
+            val url = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            url?.let {
+                contentResolver.openOutputStream(it)?.use { outputStream ->
+                    contentResolver.openInputStream(uri)?.copyTo(outputStream)
+                }
+            }
+        }
+    }
+
+    fun clearCurrentImage() {
+        imageUri = null
+        _imageBitmap.value = null
     }
 }
 
