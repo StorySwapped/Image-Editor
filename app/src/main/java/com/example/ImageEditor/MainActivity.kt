@@ -234,24 +234,45 @@ fun ImageEditorScreen() {
                 .horizontalScroll(scrollState),
         ) {
             Text(
-                text = "     Basic Editing   ",
-                style = TextStyle(fontSize = 13.sp), // Sets the font size to 24sp
-                color = Color.White
-            )
-            
-            Text(
-                text = "   Advance Editing   ",
+                text = "     Basic Editing      ",
                 style = TextStyle(fontSize = 13.sp), // Sets the font size to 24sp
                 color = Color.White
             )
 
             Text(
-                text = "   Crop & Select   ",
-                style = TextStyle(fontSize = 13.sp), // Sets the font size to 24sp
+                text = "Advance Editing   ",
+                style = TextStyle(fontSize = 13.sp),
                 color = Color.White
             )
+
+            Text(
+                text = "   Crop & Select    ",
+                style = TextStyle(fontSize = 13.sp),
+                color = Color.White
+            )
+
+            Text(
+                text = "   Background  ",
+                style = TextStyle(fontSize = 13.sp),
+                color = Color.White
+            )
+
+            Text(
+                text = "   Foreground  ",
+                style = TextStyle(fontSize = 13.sp),
+                color = Color.White
+            )
+
+            Text(
+                text = "    Filters   ",
+                style = TextStyle(fontSize = 13.sp),
+                color = Color.White
+            )
+
+
 
         }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
