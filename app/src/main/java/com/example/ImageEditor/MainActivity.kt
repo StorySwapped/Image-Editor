@@ -62,8 +62,8 @@ fun ImageEditorScreen() {
             TextButton(
                 onClick = { selectedOption = "Save" },
                 modifier = Modifier
-                    .width (100.dp)
-                    .height (60.dp)
+                    .width(100.dp)
+                    .height(60.dp)
             ) {
                 Text(
                     text = "Save",
@@ -75,8 +75,8 @@ fun ImageEditorScreen() {
             TextButton(
                 onClick = { selectedOption = "Cancel" },
                 modifier = Modifier
-                    .width (100.dp)
-                    .height (60.dp)
+                    .width(100.dp)
+                    .height(60.dp)
             ) {
                 Text(
                     text = "Cancel",
@@ -149,84 +149,115 @@ fun ImageEditorScreen() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(15.dp)
+                .padding(10.dp)
                 .horizontalScroll(scrollState),
         ) {
 
             IconButton(
                 onClick = { selectedOption("Basic Editing") },
-                modifier = Modifier.size(80.dp)  // Set the size of the IconButton
+                modifier = Modifier.size(100.dp)  // Set the size of the IconButton
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.basic_editing),
                     contentDescription = "Basic Editing",
                     tint = Color.White,
-                    modifier = Modifier.size(60.dp)  // Set the size of the Icon
+                    modifier = Modifier.size(70.dp)  // Set the size of the Icon
                 )
             }
 
             IconButton(
-                onClick = { selectedOption("Advanced Editing")},
-                modifier = Modifier.size(80.dp)
+                onClick = { selectedOption("Advanced Editing") },
+                modifier = Modifier.size(100.dp)
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.advanced_editing),
                     contentDescription = "Advanced Editing",
                     tint = Color.White,
-                    modifier = Modifier.size(60.dp)
+                    modifier = Modifier.size(70.dp)
                 )
             }
 
             IconButton(
-                onClick = { selectedOption("Cropping and Selection")},
-                modifier = Modifier.size(80.dp)
+                onClick = { selectedOption("Cropping and Selection") },
+                modifier = Modifier.size(100.dp)
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.crop),
                     contentDescription = "Cropping and Selection",
                     tint = Color.White,
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(70.dp)
                 )
             }
 
             IconButton(
-                onClick = { selectedOption("Background Color Changer")},
+                onClick = { selectedOption("Background Color Changer") },
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(100.dp)
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.background_color_changer),
                     contentDescription = "Background Color Changer",
                     tint = Color.White,
-                    modifier = Modifier.size(60.dp)
+                    modifier = Modifier.size(70.dp)
                 )
             }
 
             IconButton(
-                onClick = { selectedOption("Foreground Color Changer")},
-                modifier = Modifier.size(80.dp)
+                onClick = { selectedOption("Foreground Color Changer") },
+                modifier = Modifier.size(100.dp)
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.foreground_color_changer),
                     contentDescription = "Foreground Color Changer",
                     tint = Color.White,
-                    modifier = Modifier.size(60.dp)
+                    modifier = Modifier.size(70.dp)
                 )
             }
 
             IconButton(
-                onClick = { selectedOption("Filters")},
-                modifier = Modifier.size(80.dp)
+                onClick = { selectedOption("Filters") },
+                modifier = Modifier.size(100.dp)
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.filter),
                     contentDescription = "Filters",
                     tint = Color.White,
-                    modifier = Modifier.size(60.dp)
+                    modifier = Modifier.size(70.dp)
                 )
             }
         }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(scrollState),
+        ) {
+            Text(
+                text = "     Basic Editing   ",
+                style = TextStyle(fontSize = 13.sp), // Sets the font size to 24sp
+                color = Color.White
+            )
+            
+            Text(
+                text = "   Advance Editing   ",
+                style = TextStyle(fontSize = 13.sp), // Sets the font size to 24sp
+                color = Color.White
+            )
+
+            Text(
+                text = "   Crop & Select   ",
+                style = TextStyle(fontSize = 13.sp), // Sets the font size to 24sp
+                color = Color.White
+            )
+
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(15.dp)
+                .horizontalScroll(scrollState),
+        ) {}
 
     }
 }
