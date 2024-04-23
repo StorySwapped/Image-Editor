@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material3.Button
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.imageeditor.ui.theme.ImageEditorTheme
 
 class MainActivity1 : ComponentActivity() {
     private var image: android.net.Uri? = null
@@ -52,9 +54,7 @@ class MainActivity1 : ComponentActivity() {
             if (displayed == null) {
                 Button(
                     onClick = {
-                        val galleryIntent =
-                            Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-                        startActivityForResult(galleryIntent, 1)
+
                     },
                     modifier = Modifier.align(Alignment.Center)
                 ) {
@@ -99,4 +99,14 @@ class MainActivity1 : ComponentActivity() {
             displayed = bitmap
         }
     }
+
+    @Preview(showBackground = true)
+    @Composable
+    fun ImageEditorPreview() {
+        ImageEditorTheme {
+            Layout()
+        }
+    }
 }
+
+

@@ -57,6 +57,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -66,7 +67,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 
-class MainActivity : ComponentActivity() {
+class LandingScreen : ComponentActivity() {
     private var image: android.net.Uri? = null
     private var displayed by mutableStateOf<android.graphics.Bitmap?>(null)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -176,11 +177,7 @@ fun ImagePreviewSection(imageModel: ImageViewModel) {
             // Show button to pick an image if none is selected
             IconButton(
                 onClick = {
-                    // Launch picker to select an image
-                    val pickImageIntent = Intent(Intent.ACTION_PICK).apply {
-                        type = "image/*"
-                    }
-                    imagePickerLauncher.launch(pickImageIntent)
+
                 },
                 modifier = Modifier.size(60.dp)
             ) {
@@ -280,7 +277,9 @@ fun EditingOptions(selectedOption: ImageViewModel) {
         }
 
         IconButton(
-            onClick = { selectedOption("Background Color Changer") },
+            onClick = {
+                      
+            },
             modifier = Modifier
                 .size(100.dp)
         ) {
