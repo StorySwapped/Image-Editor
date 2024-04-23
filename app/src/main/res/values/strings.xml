@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="title_activity_middle_action">Middle_action</string>
+    <string name="title_activity_sticker_and_image">stickerAndImage</string>
+</resources>
