@@ -1,4 +1,4 @@
-package com.example.imageeditor
+package com.example.myapplication
 
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -19,9 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material3.Button
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.imageeditor.ChangeBackground
 import com.example.imageeditor.ui.theme.ImageEditorTheme
 
-class MainActivity1 : ComponentActivity() {
+class MainActivity : ComponentActivity() {
     private var image: android.net.Uri? = null
     private var displayed by mutableStateOf<android.graphics.Bitmap?>(null)
 
@@ -54,7 +55,9 @@ class MainActivity1 : ComponentActivity() {
             if (displayed == null) {
                 Button(
                     onClick = {
-
+                        val galleryIntent =
+                            Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                        startActivityForResult(galleryIntent, 1)
                     },
                     modifier = Modifier.align(Alignment.Center)
                 ) {
@@ -64,7 +67,7 @@ class MainActivity1 : ComponentActivity() {
 
             Button(
                 onClick = {
-                    val intent = Intent(this@MainActivity1, ChangeBackground::class.java).apply {
+                    val intent = Intent(this@MainActivity, ChangeBackground::class.java).apply {
                         putExtra("imageUri", image.toString())
                     }
                     startActivityForResult(intent,2)
@@ -100,13 +103,6 @@ class MainActivity1 : ComponentActivity() {
         }
     }
 
-    @Preview(showBackground = true)
-    @Composable
-    fun ImageEditorPreview() {
-        ImageEditorTheme {
-            Layout()
-        }
-    }
 }
 
 

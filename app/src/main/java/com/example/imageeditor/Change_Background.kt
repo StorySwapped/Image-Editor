@@ -42,8 +42,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
+import com.example.imageeditor.ui.theme.ImageEditorTheme
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import org.json.JSONObject
@@ -217,17 +220,26 @@ class ChangeBackground : ComponentActivity() {
 
         displayed= newBitmap
     }
-    private fun sendtoMain(bitmap: Bitmap?){
+    private fun sendtoMain(bitmap: Bitmap?) {
         bitmap?.let {
-            val file = File(cacheDir, "image_next.jpg")
+            val file = File(cacheDir, "edited_image.jpg")
             it.writeBitmap(file)
-            val intent = Intent().apply {
-                putExtra("image", file.toUri().toString())
+
+            val returnUri = FileProvider.getUriForFile(
+                this,
+                "${applicationContext.packageName}.provider",
+                file
+            )
+
+            val resultIntent = Intent().apply {
+                putExtra("newImageUri", returnUri.toString())
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            setResult(Activity.RESULT_OK, intent)
+            setResult(Activity.RESULT_OK, resultIntent)
             finish()
         }
     }
+
 
     private fun getImage(imageUri: Uri) {
         CoroutineScope(Dispatchers.IO).launch {
