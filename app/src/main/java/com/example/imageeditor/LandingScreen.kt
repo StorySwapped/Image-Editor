@@ -177,19 +177,24 @@ fun ImagePreviewSection(imageModel: ImageViewModel) {
             // Show button to pick an image if none is selected
             IconButton(
                 onClick = {
-
+                    // Launch picker to select an image
+                    val pickImageIntent = Intent(Intent.ACTION_PICK).apply {
+                        type = "image/*"
+                    }
+                    imagePickerLauncher.launch(pickImageIntent)
                 },
                 modifier = Modifier.size(60.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.add_photo),
                     contentDescription = "Add Image",
-                    tint = Color.Gray,
+                    tint = Color.White,
                     modifier = Modifier.size(50.dp)
                 )
             }
         }
     }
+
 }
 
 
