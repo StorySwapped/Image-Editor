@@ -1,5 +1,6 @@
 [versions]
 agp = "8.3.2"
+coreKtxVersion = "1.13.0"
 kotlin = "1.9.0"
 coreKtx = "1.12.0"
 junit = "4.13.2"
@@ -17,6 +18,7 @@ lifecycleViewmodelCompose = "2.7.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-ktx-v1130 = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
 androidx-material3-icons-extended = { module = "androidx.compose.material3:material3-icons-extended", version.ref = "material3IconsExtended" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
