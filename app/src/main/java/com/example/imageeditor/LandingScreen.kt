@@ -223,30 +223,30 @@ fun EditingOptions(imageModel: ImageViewModel) {
         IconButton(
             onClick = { selectedOption("Undo") },
             modifier = Modifier
-                .size(50.dp)
-                .background(Color.Gray, shape = RoundedCornerShape(50.dp))
-                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(50.dp)),
+                .size(40.dp)
+                .background(Color.Gray, shape = RoundedCornerShape(40.dp))
+                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(40.dp)),
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.undo),
                 contentDescription = "Undo",
                 tint = Color.Black,
-                modifier = Modifier.size(30.dp)  // Set the size of the Icon
+                modifier = Modifier.size(20.dp)  // Set the size of the Icon
             )
         }
 
         IconButton(
             onClick = { selectedOption("Redo") },
             modifier = Modifier
-                .size(50.dp)
-                .background(Color.Gray, shape = RoundedCornerShape(50.dp))
-                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(50.dp)),
+                .size(40.dp)
+                .background(Color.Gray, shape = RoundedCornerShape(40.dp))
+                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(40.dp)),
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.redo),
                 contentDescription = "Redo",
                 tint = Color.Black,
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
     }
@@ -348,8 +348,8 @@ fun EditingOptions(imageModel: ImageViewModel) {
             .fillMaxWidth(),
     ) {
         Text(
-            text = "      Basic Editing      ",
-            style = TextStyle(fontSize = 12.sp), // Sets the font size to 24sp
+            text = "       Basic Editing     ",
+            style = TextStyle(fontSize = 11.sp), // Sets the font size to 24sp
             color = Color.LightGray
         )
 
@@ -360,13 +360,13 @@ fun EditingOptions(imageModel: ImageViewModel) {
         )
 
         Text(
-            text = "   Crop & Select   ",
+            text = "      Crop & Select    ",
             style = TextStyle(fontSize = 11.sp),
             color = Color.LightGray
         )
 
         Text(
-            text = "  Background Color     ",
+            text = "     Background Color     ",
             style = TextStyle(fontSize = 11.sp),
             color = Color.LightGray
         )
