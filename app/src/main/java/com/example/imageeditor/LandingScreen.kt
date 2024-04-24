@@ -261,39 +261,39 @@ fun EditingOptions(imageModel: ImageViewModel) {
 
         IconButton(
             onClick = { selectedOption("Basic Editing") },
-            modifier = Modifier.size(100.dp)  // Set the size of the IconButton
+            modifier = Modifier.size(90.dp)  // Set the size of the IconButton
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.basic_editing),
                 contentDescription = "Basic Editing",
                 tint = Color.Gray,
                 modifier = Modifier
-                    .size(70.dp)  // Set the size of the Icon
+                    .size(50.dp)  // Set the size of the Icon
             )
         }
 
         IconButton(
             onClick = { selectedOption("Advanced Editing") },
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier.size(90.dp)
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.advanced_editing),
                 contentDescription = "Advanced Editing",
                 tint = Color.Gray,
-                modifier = Modifier.size(70.dp)
+                modifier = Modifier.size(50.dp)
             )
         }
 
         IconButton(
             onClick = { selectedOption("Cropping and Selection") },
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier.size(90.dp)
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.crop),
                 contentDescription = "Cropping and Selection",
                 tint = Color.Gray,
                 modifier = Modifier
-                    .size(70.dp)
+                    .size(50.dp)
             )
         }
 
@@ -305,37 +305,37 @@ fun EditingOptions(imageModel: ImageViewModel) {
                 changeBackgroundLauncher.launch(intent)
             },
             modifier = Modifier
-                .size(100.dp)
+                .size(90.dp)
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.background_color_changer),
                 contentDescription = "Background Color Changer",
                 tint = Color.Gray,
-                modifier = Modifier.size(70.dp)
+                modifier = Modifier.size(50.dp)
             )
         }
 
         IconButton(
             onClick = { selectedOption("Filters") },
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier.size(90.dp)
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.filter),
                 contentDescription = "Filters",
                 tint = Color.Gray,
-                modifier = Modifier.size(70.dp)
+                modifier = Modifier.size(50.dp)
             )
         }
 
         IconButton(
             onClick = { selectedOption("Foreground Color Changer") },
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier.size(90.dp)
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.foreground_color_changer),
                 contentDescription = "Foreground Color Changer",
                 tint = Color.Gray,
-                modifier = Modifier.size(70.dp)
+                modifier = Modifier.size(50.dp)
             )
         }
 
@@ -349,37 +349,37 @@ fun EditingOptions(imageModel: ImageViewModel) {
     ) {
         Text(
             text = "      Basic Editing      ",
-            style = TextStyle(fontSize = 13.sp), // Sets the font size to 24sp
+            style = TextStyle(fontSize = 12.sp), // Sets the font size to 24sp
             color = Color.LightGray
         )
 
         Text(
             text = "   Advance Editing   ",
-            style = TextStyle(fontSize = 13.sp),
+            style = TextStyle(fontSize = 11.sp),
             color = Color.LightGray
         )
 
         Text(
             text = "   Crop & Select   ",
-            style = TextStyle(fontSize = 13.sp),
+            style = TextStyle(fontSize = 11.sp),
             color = Color.LightGray
         )
 
         Text(
             text = "  Background Color     ",
-            style = TextStyle(fontSize = 13.sp),
+            style = TextStyle(fontSize = 11.sp),
             color = Color.LightGray
         )
 
         Text(
             text = "      Filters           ",
-            style = TextStyle(fontSize = 13.sp),
+            style = TextStyle(fontSize = 11.sp),
             color = Color.LightGray
         )
 
         Text(
             text = " Foreground Color   ",
-            style = TextStyle(fontSize = 13.sp),
+            style = TextStyle(fontSize = 11.sp),
             color = Color.LightGray
         )
 
