@@ -42,11 +42,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
-import com.example.imageeditor.ui.theme.ImageEditorTheme
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import org.json.JSONObject
@@ -220,25 +217,18 @@ class ChangeBackground : ComponentActivity() {
 
         displayed= newBitmap
     }
-    private fun sendtoMain(bitmap: Bitmap?) {
+    private fun sendtoMain(bitmap: Bitmap?){
         bitmap?.let {
-            val file = File(cacheDir, "edited_image.jpg")
+            val file = File(cacheDir, "image_next.jpeg")
             it.writeBitmap(file)
-
-            val returnUri = FileProvider.getUriForFile(
-                this,
-                "${applicationContext.packageName}.provider",
-                file
-            )
-
-            val resultIntent = Intent().apply {
-                putExtra("newImageUri", returnUri.toString())
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val intent = Intent().apply {
+                putExtra("image", file.toUri().toString())
             }
-            setResult(Activity.RESULT_OK, resultIntent)
+            setResult(Activity.RESULT_OK, intent)
             finish()
         }
     }
+
 
 
 
@@ -299,7 +289,7 @@ class ChangeBackground : ComponentActivity() {
 
 
     private suspend fun removeBackgroundAPI(file: File): ByteArray {
-        val apiKey = "2NzQeeVoTGujyqH4wr6dh5Ay"
+        val apiKey = "ZvCAzirQcywaR9CqknLeRAWd"
         val client = OkHttpClient()
         val body = MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart("image_file", "image.jpg", RequestBody.create("image/jpeg".toMediaType(), file)).build()
         val request = Request.Builder().url("https://api.remove.bg/v1.0/removebg").addHeader("X-Api-Key", apiKey).post(body).build()
