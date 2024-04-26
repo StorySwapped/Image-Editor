@@ -110,8 +110,7 @@ fun HeaderSection(viewModel: ImageViewModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp)
-            .background(Color.Black),
+            .absolutePadding(bottom = 30.dp, left = 30.dp, right = 30.dp, top = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         TextButton(
@@ -120,16 +119,16 @@ fun HeaderSection(viewModel: ImageViewModel) {
                 viewModel.clearCurrentImage() },
 
             modifier = Modifier
+                .height(32.dp)
                 .width(80.dp)
-                .height(30.dp)
-                .background(Color.LightGray, shape = RoundedCornerShape(50.dp))
-                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(50.dp)),
+                .background(Color.LightGray, shape = RoundedCornerShape(30.dp))
+                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(30.dp)),
 
 
         ) {
             Text(
                 text = "Save",
-                style = TextStyle(fontSize = 13.sp),
+                style = TextStyle(fontSize = 14.sp),
                 color = Color.Black
             )
         }
@@ -138,13 +137,13 @@ fun HeaderSection(viewModel: ImageViewModel) {
             onClick = { viewModel.clearCurrentImage() },
             modifier = Modifier
                 .width(80.dp)
-                .height(30.dp)
+                .height(32.dp)
                 .background(Color.LightGray, shape = RoundedCornerShape(50.dp))
                 .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(50.dp)),
         ) {
             Text(
                 text = "Cancel",
-                style = TextStyle(fontSize = 13.sp),
+                style = TextStyle(fontSize = 14.sp),
                 color = Color.Black
             )
         }
@@ -157,7 +156,6 @@ fun ImagePreviewSection(viewModel: ImageViewModel) {
     val context = LocalContext.current
     val imageBitmap = viewModel.imageBitmap.value
 
-    // Log the current URI every time the composable recomposes
     Log.d("ImageEditor", "Composing ImagePreviewSection with URI: ${viewModel.imageUri}")
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -179,11 +177,10 @@ fun ImagePreviewSection(viewModel: ImageViewModel) {
         }
     }
 
-
     Box(
         modifier = Modifier
             .background(Color.Black)
-            .size(520.dp),
+            .size(530.dp),
         contentAlignment = Alignment.Center
     ) {
         imageBitmap?.let {
@@ -231,9 +228,8 @@ fun EditingOptions(viewModel: ImageViewModel) {
 
     Row(
         modifier = Modifier
-            .padding(10.dp)
             .fillMaxWidth()
-            .padding(10.dp),
+            .absolutePadding(top = 50.dp, bottom = 20.dp, left = 80.dp, right = 80.dp),
 
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
@@ -241,30 +237,30 @@ fun EditingOptions(viewModel: ImageViewModel) {
         IconButton(
             onClick = { selectedOption("Undo") },
             modifier = Modifier
-                .size(40.dp)
-                .background(Color.Gray, shape = RoundedCornerShape(40.dp))
-                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(40.dp)),
+                .size(20.dp)
+                .background(Color.Gray, shape = RoundedCornerShape(30.dp))
+                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(30.dp)),
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.undo),
                 contentDescription = "Undo",
                 tint = Color.Black,
-                modifier = Modifier.size(20.dp)  // Set the size of the Icon
+                modifier = Modifier.size(25.dp)  // Set the size of the Icon
             )
         }
 
         IconButton(
             onClick = { selectedOption("Redo") },
             modifier = Modifier
-                .size(40.dp)
-                .background(Color.Gray, shape = RoundedCornerShape(40.dp))
-                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(40.dp)),
+                .size(20.dp)
+                .background(Color.Gray, shape = RoundedCornerShape(30.dp))
+                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(30.dp)),
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.redo),
                 contentDescription = "Redo",
                 tint = Color.Black,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(25.dp)
             )
         }
     }
@@ -417,23 +413,25 @@ class ImageViewModel : ViewModel() {
     fun loadImage(uri: Uri, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                context.contentResolver.openInputStream(uri)?.use { stream ->
-                    val bitmap = BitmapFactory.decodeStream(stream)
-                    withContext(Dispatchers.Main) {
-                        _imageBitmap.value = bitmap?.asImageBitmap()
-                    }
-                } ?: Log.e("ImageViewModel", "Failed to open input stream for URI: $uri")
+                // Get the Bitmap directly using MediaStore.Images.Media.getBitmap
+                val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                withContext(Dispatchers.Main) {
+                    _imageBitmap.value = bitmap?.asImageBitmap()
+                    Log.d("ImageViewModel", "Image loaded successfully.")
+                }
             } catch (e: Exception) {
                 Log.e("ImageViewModel", "Error loading image from URI: $uri", e)
             }
         }
     }
 
+
     fun updateImage(resultUri: String?, context: Context) {
         resultUri?.let {
             val uniqueUri = Uri.parse(it).buildUpon().appendQueryParameter("timestamp", System.currentTimeMillis().toString()).build()
             Log.d("ImageEditor", "Updating image URI to: $uniqueUri")
             imageUri = uniqueUri
+            clearCurrentImage()
             loadImage(uniqueUri, context)
         }
     }
@@ -460,23 +458,6 @@ class ImageViewModel : ViewModel() {
     fun clearCurrentImage() {
         imageUri = null
         _imageBitmap.value = null
-    }
-}
-
-
-@Composable
-fun rememberAsyncImagePainter(uri: Uri, viewModel: ImageViewModel, context: Context): Painter {
-    viewModel.loadImage(uri, context)
-    val imageBitmap by viewModel.imageBitmap
-    return imageBitmap?.let { BitmapPainter(it) } ?: EmptyPainter
-}
-
-object EmptyPainter : Painter() {
-    override val intrinsicSize: Size
-        get() = Size.Unspecified
-
-    override fun DrawScope.onDraw() {
-        // Draw nothing if no image is loaded
     }
 }
 

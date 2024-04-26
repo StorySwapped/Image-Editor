@@ -27,6 +27,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +43,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.core.net.toUri
 import androidx.compose.ui.unit.sp
@@ -54,6 +58,9 @@ class ChangeBackground : ComponentActivity() {
 
     private var displayed by mutableStateOf<Bitmap?>(null)
     private var original by mutableStateOf<Bitmap?>(null)
+    private var tickConfirmation by mutableStateOf(false)
+    private var crossConfirmation by mutableStateOf(false)
+
     private var initial by mutableStateOf<Bitmap?>(null)
 
 
@@ -81,13 +88,15 @@ class ChangeBackground : ComponentActivity() {
                     .fillMaxWidth()
                     .padding(top = 16.dp),
                 horizontalArrangement = Arrangement.Center
+
             ) {
                 Text(
                     text = "Background Color Changer",
                     color = Color.White,
                     modifier = Modifier.padding(top = 8.dp),
                     textAlign = TextAlign.Center,
-                    fontSize = 25.sp
+                    fontSize = 25.sp,
+                    fontFamily = FontFamily(Font(R.font.sansserif))
                 )
             }
 
@@ -104,6 +113,7 @@ class ChangeBackground : ComponentActivity() {
                     )
                 }
 
+
                 Row(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -115,25 +125,50 @@ class ChangeBackground : ComponentActivity() {
                     ) {
                         eachButton(color = android.graphics.Color.RED) { applyColor(it) }
                         eachButton(color = android.graphics.Color.GREEN) { applyColor(it) }
-                        eachButton(color = android.graphics.Color.BLUE) {applyColor(it) }
+                        eachButton(color = android.graphics.Color.BLUE) { applyColor(it) }
                         eachButton(color = android.graphics.Color.YELLOW) { applyColor(it) }
                         eachButton(color = android.graphics.Color.WHITE) { applyColor(it) }
                         eachButton(color = android.graphics.Color.BLACK) { applyColor(it) }
-                        eachButton(color = android.graphics.Color.CYAN) {applyColor(it) }
+                        eachButton(color = android.graphics.Color.CYAN) { applyColor(it) }
                         eachButton(color = android.graphics.Color.DKGRAY) { applyColor(it) }
-                        eachButton(color = android.graphics.Color.GRAY) { applyColor(it)}
-                        eachButton(color = android.graphics.Color.LTGRAY) {applyColor(it) }
+                        eachButton(color = android.graphics.Color.GRAY) { applyColor(it) }
+                        eachButton(color = android.graphics.Color.LTGRAY) { applyColor(it) }
                         eachButton(color = android.graphics.Color.MAGENTA) { applyColor(it) }
-                        eachButton(color = android.graphics.Color.parseColor("#D11799")) { applyColor(it)}
-                        eachButton(color = android.graphics.Color.parseColor("#999B84")) {applyColor(it) }
-                        eachButton(color = android.graphics.Color.parseColor("#A8ABE0")) { applyColor(it) }
-                        eachButton(color = android.graphics.Color.parseColor("#BADA55")) { applyColor(it)}
-                        eachButton(color = android.graphics.Color.parseColor("#F6546A")) {applyColor(it) }
-                        eachButton(color = android.graphics.Color.parseColor("#5D9FA0")) { applyColor(it) }
+                        eachButton(color = android.graphics.Color.parseColor("#D11799")) {
+                            applyColor(
+                                it
+                            )
+                        }
+                        eachButton(color = android.graphics.Color.parseColor("#999B84")) {
+                            applyColor(
+                                it
+                            )
+                        }
+                        eachButton(color = android.graphics.Color.parseColor("#A8ABE0")) {
+                            applyColor(
+                                it
+                            )
+                        }
+                        eachButton(color = android.graphics.Color.parseColor("#BADA55")) {
+                            applyColor(
+                                it
+                            )
+                        }
+                        eachButton(color = android.graphics.Color.parseColor("#F6546A")) {
+                            applyColor(
+                                it
+                            )
+                        }
+                        eachButton(color = android.graphics.Color.parseColor("#5D9FA0")) {
+                            applyColor(
+                                it
+                            )
+                        }
 
                     }
                 }
             }
+
 
             Row(
                 modifier = Modifier
@@ -148,7 +183,7 @@ class ChangeBackground : ComponentActivity() {
                         .clip(CircleShape)
                         .background(Color.White)
                         .clickable {
-                            sendtoMain(initial)
+                            crossConfirmation = true
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -161,40 +196,52 @@ class ChangeBackground : ComponentActivity() {
                         .clip(CircleShape)
                         .background(Color.White)
                         .clickable {
-                            sendtoMain(displayed)
+                            tickConfirmation = true
                         },
                     contentAlignment = Alignment.Center
                 ) {
                     TickIcon()
                 }
             }
+            if (tickConfirmation) {
+                showBoxTick()
+            }
+
+            if (crossConfirmation) {
+                showBoxCross()
+            }
+
         }
     }
 
 
     @Composable
     fun eachButton(color: Int, onClick: (Int) -> Unit) {
-        Box(modifier = Modifier.padding(horizontal = 4.dp).size(50.dp).background(color = Color(color)).clickable { onClick(color) }, contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.padding(horizontal = 4.dp).size(50.dp)
+                .background(color = Color(color)).clickable { onClick(color) },
+            contentAlignment = Alignment.Center
+        ) {
         }
     }
-
 
 
     private fun applyColor(color: Int) {
         original?.let {
-            changeBackground(it,color)
+            changeBackground(it, color)
         }
     }
 
 
-    private fun changeBackground(bitmap: Bitmap, color: Int){
+    private fun changeBackground(bitmap: Bitmap, color: Int) {
         val X: Float
         val Y: Float
 
-        val newBackground = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        val newBackground =
+            Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
         newBackground.eraseColor(color)
 
-        val foreRatio= bitmap.width.toFloat() / bitmap.height.toFloat()
+        val foreRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
         val backRatio = newBackground.width.toFloat() / newBackground.height.toFloat()
 
         if (foreRatio > backRatio) {
@@ -215,9 +262,10 @@ class ChangeBackground : ComponentActivity() {
         canvas.drawBitmap(newBackground, 0f, 0f, null)
         canvas.drawBitmap(bitmap, mat, null)
 
-        displayed= newBitmap
+        displayed = newBitmap
     }
-    private fun sendtoMain(bitmap: Bitmap?){
+
+    private fun sendtoMain(bitmap: Bitmap?) {
         bitmap?.let {
             val file = File(cacheDir, "image_next.jpeg")
             it.writeBitmap(file)
@@ -228,8 +276,6 @@ class ChangeBackground : ComponentActivity() {
             finish()
         }
     }
-
-
 
 
     private fun getImage(imageUri: Uri) {
@@ -278,10 +324,8 @@ class ChangeBackground : ComponentActivity() {
     }
 
 
-
-
     private fun Bitmap.writeBitmap(file: File) {
-        val output= file.outputStream()
+        val output = file.outputStream()
         this.compress(Bitmap.CompressFormat.JPEG, 100, output)
         output.flush()
         output.close()
@@ -291,8 +335,13 @@ class ChangeBackground : ComponentActivity() {
     private suspend fun removeBackgroundAPI(file: File): ByteArray {
         val apiKey = "ZvCAzirQcywaR9CqknLeRAWd"
         val client = OkHttpClient()
-        val body = MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart("image_file", "image.jpg", RequestBody.create("image/jpeg".toMediaType(), file)).build()
-        val request = Request.Builder().url("https://api.remove.bg/v1.0/removebg").addHeader("X-Api-Key", apiKey).post(body).build()
+        val body = MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart(
+            "image_file",
+            "image.jpg",
+            RequestBody.create("image/jpeg".toMediaType(), file)
+        ).build()
+        val request = Request.Builder().url("https://api.remove.bg/v1.0/removebg")
+            .addHeader("X-Api-Key", apiKey).post(body).build()
         val response = client.newCall(request).execute()
         if (!response.isSuccessful) {
             throw Exception("Failure in removal: ${response.message}")
@@ -302,7 +351,7 @@ class ChangeBackground : ComponentActivity() {
             val json = JSONObject(response.body?.string() ?: "")
             val image = json.getJSONObject("data").getString("result")
             return URL(image).readBytes()
-        } else if (type?.startsWith("image/png") == true || type?.startsWith("image/jpeg")==true)  {
+        } else if (type?.startsWith("image/png") == true || type?.startsWith("image/jpeg") == true) {
             return response.body?.bytes() ?: throw Exception("Empty")
         } else {
             throw Exception("Unexpected response type: $type")
@@ -311,6 +360,66 @@ class ChangeBackground : ComponentActivity() {
 
     }
 
+    @Composable
+    fun showBoxTick() {
+        AlertDialog(
+            onDismissRequest = { tickConfirmation = false },
+            title = {
+                Text(text = "Confirmation")
+            },
+            text = {
+                Text(text = "Are you sure you want to save changes?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        sendtoMain(displayed)
+                        tickConfirmation = false
+                    }
+                ) {
+                    Text(text = "Yes")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { tickConfirmation = false }
+                ) {
+                    Text(text = "No")
+                }
+            }
+        )
+    }
+
+    @Composable
+    fun showBoxCross() {
+        AlertDialog(
+            onDismissRequest = { crossConfirmation = false },
+            title = {
+                Text(text = "Confirmation")
+            },
+            text = {
+                Text(text = "Are you sure you want to discard changes?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        sendtoMain(initial)
+                        crossConfirmation = false
+                    }
+
+                ) {
+                    Text(text = "Yes")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { crossConfirmation = false }
+                ) {
+                    Text(text = "No")
+                }
+            }
+        )
+    }
 }
 @Composable
 fun CrossIcon() {
@@ -343,3 +452,5 @@ fun TickIcon(modifier: Modifier = Modifier) {
         )
     }
 }
+
+
