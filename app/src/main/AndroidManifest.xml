@@ -26,16 +26,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".ChangeBackground"
+            android:name=".FilterManagement"
             android:theme="@style/Theme.ImageEditor"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
+
+
+        <activity
+            android:name=".ChangeBackground"
+            android:theme="@style/Theme.ImageEditor">
+        </activity>
+
+
 
     </application>
 

@@ -406,7 +406,6 @@ class ChangeBackground : ComponentActivity() {
                         sendtoMain(initial)
                         crossConfirmation = false
                     }
-
                 ) {
                     Text(text = "Yes")
                 }

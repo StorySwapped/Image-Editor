@@ -1,5 +1,6 @@
 package com.example.imageeditor
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
@@ -32,6 +33,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -42,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,14 +69,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.imageeditor.ui.theme.ImageEditorTheme
+import com.example.jca.FilterManagement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 
 class LandingScreen : ComponentActivity() {
-    private var image: android.net.Uri? = null
-    private var displayed by mutableStateOf<android.graphics.Bitmap?>(null)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -106,18 +109,17 @@ fun ImageEditorScreen() {
 
 @Composable
 fun HeaderSection(viewModel: ImageViewModel) {
+    var save by remember { mutableStateOf(false) }
+    var cancel by remember { mutableStateOf(false) }
     val context = LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .absolutePadding(bottom = 30.dp, left = 30.dp, right = 30.dp, top = 10.dp),
+            .absolutePadding(bottom = 30.dp, left = 30.dp, right = 30.dp, top = 20.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         TextButton(
-            onClick = {
-                viewModel.saveImageToGallery(context)
-                viewModel.clearCurrentImage() },
-
+            onClick = { save = true },
             modifier = Modifier
                 .height(32.dp)
                 .width(80.dp)
@@ -132,9 +134,13 @@ fun HeaderSection(viewModel: ImageViewModel) {
                 color = Color.Black
             )
         }
+        if (save){
+            Confirmation (viewModel, context, "Are you sure you are done editing?", "save")
+            save = false
+        }
 
         TextButton(
-            onClick = { viewModel.clearCurrentImage() },
+            onClick = { cancel = true },
             modifier = Modifier
                 .width(80.dp)
                 .height(32.dp)
@@ -147,9 +153,13 @@ fun HeaderSection(viewModel: ImageViewModel) {
                 color = Color.Black
             )
         }
+
+        if (cancel){
+            Confirmation (viewModel, context, "Are you sure you want to discard all changes?", "cancel")
+            cancel = false
+        }
     }
 }
-
 
 @Composable
 fun ImagePreviewSection(viewModel: ImageViewModel) {
@@ -225,6 +235,7 @@ fun EditingOptions(viewModel: ImageViewModel) {
         }
     }
 
+    var error by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
@@ -317,10 +328,15 @@ fun EditingOptions(viewModel: ImageViewModel) {
 
         IconButton(
             onClick = {
-                val intent = Intent(context, ChangeBackground::class.java).apply {
-                    putExtra("imageUri", viewModel.imageUri.toString())
+                if (viewModel.imageUri == null){
+                    error = true
                 }
-                changeBackgroundLauncher.launch(intent)
+                else {
+                    val intent = Intent(context, ChangeBackground::class.java).apply {
+                        putExtra("imageUri", viewModel.imageUri.toString())
+                    }
+                    changeBackgroundLauncher.launch(intent)
+                }
             },
             modifier = Modifier.size(80.dp)
         ) {
@@ -334,7 +350,16 @@ fun EditingOptions(viewModel: ImageViewModel) {
 
 
         IconButton(
-            onClick = { selectedOption("Filters") },
+            onClick = {
+                if (viewModel.imageUri == null) {
+                    error = true
+                } else {
+                    val intent = Intent(context, FilterManagement::class.java).apply {
+                        putExtra("imageUri", viewModel.imageUri.toString())
+                    }
+                    changeBackgroundLauncher.launch(intent)
+                }
+            },
             modifier = Modifier.size(80.dp)
         ) {
             Icon(
@@ -360,6 +385,11 @@ fun EditingOptions(viewModel: ImageViewModel) {
         }
 
 
+    }
+
+    if (error)
+    {
+        ErrorMessage ()
     }
 
     Row(
@@ -404,6 +434,62 @@ fun EditingOptions(viewModel: ImageViewModel) {
         )
     }
 }
+
+@SuppressLint("UnrememberedMutableState")
+@Composable
+fun Confirmation(viewModel: ImageViewModel, context: Context, message: String, value: String) {
+    AlertDialog(
+        onDismissRequest = {},
+        title = {
+            Text(text = "Confirmation")
+        },
+        text = {
+            Text(text = message)
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (value == "save") {
+                        viewModel.saveImageToGallery(context)
+                        viewModel.clearCurrentImage()
+                    }
+                    if (value == "cancel") {
+                        viewModel.clearCurrentImage()
+                    }
+                }
+            ) {
+                Text(text = "Yes")
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = {}
+            ) {
+                Text(text = "No")
+            }
+        }
+    )
+}
+
+@Composable
+fun ErrorMessage() {
+    var showDialog by remember { mutableStateOf(true) }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(text = "Error") },
+            text = { Text(text = "Image Not Uploaded") },
+            confirmButton = {
+                Button(onClick = { showDialog = false }) {
+                    Text(text = "OK")
+                }
+            }
+        )
+    }
+}
+
+
 
 class ImageViewModel : ViewModel() {
     var imageUri by mutableStateOf<Uri?>(null)
@@ -464,6 +550,8 @@ class ImageViewModel : ViewModel() {
 fun selectedOption(s: String) {
 
 }
+
+
 
 @Preview(showBackground = true)
 @Composable

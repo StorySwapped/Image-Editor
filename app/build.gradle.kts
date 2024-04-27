@@ -71,6 +71,10 @@ dependencies {
     implementation(libs.okhttp3.okhttp)
     implementation(libs.org.json)
 
+    implementation(libs.glide)
+    annotationProcessor(libs.glide.compiler)
+    implementation(libs.coil.compose)
+    implementation(libs.compose.runtime)
 
 
 }
