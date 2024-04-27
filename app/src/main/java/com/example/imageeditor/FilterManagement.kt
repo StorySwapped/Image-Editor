@@ -1,15 +1,16 @@
 
 package com.example.jca
 import android.content.Context
-import android.graphics.Color
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,8 +31,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,35 +40,45 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.ImagePainter
+import coil.compose.rememberImagePainter
+import java.io.InputStream
+
 
 class FilterManagement : ComponentActivity() {
+    companion object {
+        const val IMAGE_URI_EXTRA = "imageUri"
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Retrieve the image URI from the intent extras
+        val imageUriString = intent.getStringExtra(IMAGE_URI_EXTRA)
+        val imageUri = Uri.parse(imageUriString)
+        val bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(imageUri))
+
         setContent {
-            MyComposeScreen()
+            if (imageUriString != null) {
+                MyComposeScreen(this,bitmap)
+
+            }
         }
     }
 }
 
 @Composable
-fun ReturnOriginalBitmap(): Bitmap {
-    val imageResId = R.drawable.image
-    return BitmapFactory.decodeResource(LocalContext.current.resources, imageResId)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MyComposeScreen() {
+fun MyComposeScreen(context: Context,bitmap: Bitmap) {
     var selectedFilter by remember { mutableStateOf(Filter.None) }
     var originalBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
@@ -77,23 +86,22 @@ fun MyComposeScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(androidx.compose.ui.graphics.Color.Black)
-            .padding(16.dp),
+            .padding(8.dp),
         verticalArrangement = Arrangement.Top
     ) {
         Text(
             text = "FILTERS",
             color = androidx.compose.ui.graphics.Color.White,
-            fontSize = 25.sp,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
         )
 
         // Load the original bitmap
-        val imageResId = R.drawable.image
-        val bitmap = BitmapFactory.decodeResource(LocalContext.current.resources, imageResId)
+//        val imageResId = R.drawable.image
+//        val bitmap = BitmapFactory.decodeResource(LocalContext.current.resources, imageResId)
         originalBitmap = bitmap
 
         // Apply the selected filter to the original bitmap
@@ -118,17 +126,16 @@ fun MyComposeScreen() {
             bitmap = imageToShow,
             contentDescription = null,
             modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp)
-                .padding(vertical = 10.dp),
-            contentScale = ContentScale.FillWidth
+                .height(500.dp)
+                .padding(top = 8.dp)
+                .fillMaxSize()
         )
 
         // Buttons Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 10.dp),
+                .padding(bottom = 3.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             IconButton(
@@ -157,7 +164,7 @@ fun MyComposeScreen() {
         Row(
             modifier = Modifier
                 .horizontalScroll(rememberScrollState())
-                .padding(bottom = 10.dp)
+                .padding(bottom = 8.dp)
         ) {
             FilterItem("None", Filter.None,originalBitmap!!) { selectedFilter = it }
             FilterItem("Vignette", Filter.Vignette, originalBitmap!!) { selectedFilter = it }
@@ -173,12 +180,15 @@ fun MyComposeScreen() {
         // Bottom Row for Icons
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             IconButton(
-                onClick = { /* Logic for icon on the extreme left */ }
+                onClick = {
+                    val intent = Intent(context, MainActivity::class.java).apply {
+
+                    }
+                }
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.icon3),
@@ -187,7 +197,9 @@ fun MyComposeScreen() {
                 )
             }
             IconButton(
-                onClick = { /* Logic for icon on the extreme right */ }
+                onClick = {  val intent = Intent(context, MainActivity::class.java).apply {
+
+                } }
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.icon4),
@@ -210,7 +222,7 @@ fun FilterItem(filterName: String, filter: Filter, originalBitmap: Bitmap, onSel
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .width(150.dp)
+           .width(125.dp)
             .padding(5.dp)
             .clickable { onSelected(filter) }
     ) {
@@ -222,6 +234,7 @@ fun FilterItem(filterName: String, filter: Filter, originalBitmap: Bitmap, onSel
                 .size(140.dp)
                 .clip(RoundedCornerShape(8.dp)),
             contentScale = ContentScale.Crop
+
         )
         Text(
             text = filterName,
@@ -548,10 +561,4 @@ private fun applyFilmFilter(inputBitmap: Bitmap): Bitmap {
         }
     }
     return outputBitmap
-}
-
-@Preview
-@Composable
-fun DisplayScreen() {
-    MyComposeScreen()
 }
