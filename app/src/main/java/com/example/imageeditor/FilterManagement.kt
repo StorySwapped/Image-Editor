@@ -222,7 +222,7 @@ fun FilterItem(filterName: String, filter: Filter, originalBitmap: Bitmap, onSel
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-           .width(125.dp)
+           .width(150.dp)
             .padding(5.dp)
             .clickable { onSelected(filter) }
     ) {
@@ -231,7 +231,7 @@ fun FilterItem(filterName: String, filter: Filter, originalBitmap: Bitmap, onSel
             bitmap = previewBitmap.asImageBitmap(),
             contentDescription = null,
             modifier = Modifier
-                .size(140.dp)
+                .size(125.dp)
                 .clip(RoundedCornerShape(8.dp)),
             contentScale = ContentScale.Crop
 
