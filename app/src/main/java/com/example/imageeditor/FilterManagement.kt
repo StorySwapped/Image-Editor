@@ -76,7 +76,7 @@ class FilterManagement : ComponentActivity() {
             ImageEditorTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = androidx.compose.ui.graphics.Color.Black 
+                    color = androidx.compose.ui.graphics.Color.Black
 
                 ) {
                     MyComposeScreen(this, bitmap)
@@ -97,7 +97,7 @@ fun MyComposeScreen(context: Context,bitmap: Bitmap) {
         modifier = Modifier
             .fillMaxSize()
             .background(androidx.compose.ui.graphics.Color.Black)
-            .padding(16.dp),
+            .padding(6.dp),
         verticalArrangement = Arrangement.Top
     ) {
         Text(
@@ -139,7 +139,7 @@ fun MyComposeScreen(context: Context,bitmap: Bitmap) {
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp)
+                .height(500.dp)
                 .padding(vertical = 10.dp),
             contentScale = ContentScale.FillWidth
         )
