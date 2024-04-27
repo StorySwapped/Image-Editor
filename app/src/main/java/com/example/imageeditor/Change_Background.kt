@@ -542,14 +542,15 @@ class ChangeBackground : ComponentActivity() {
         bitmap?.let {
             val file = File(cacheDir, "image_next.jpg")
             it.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(file))
+            val uri = FileProvider.getUriForFile(this, "com.example.imageeditor.fileprovider", file)
             val intent = Intent().apply {
-                putExtra("imageUri", file.toUri().toString())
+                putExtra("imageUri", uri.toString())
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             setResult(Activity.RESULT_OK, intent)
             finish()
         }
     }
-
 
 
 
