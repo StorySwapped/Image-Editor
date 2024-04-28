@@ -542,9 +542,8 @@ class ChangeBackground : ComponentActivity() {
         bitmap?.let {
             val file = File(cacheDir, "image_next.jpg")
             it.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(file))
-            val uri = FileProvider.getUriForFile(this, "com.example.imageeditor.fileprovider", file)
             val intent = Intent().apply {
-                putExtra("imageUri", uri.toString())
+                putExtra("imageUri", file.toUri().toString())
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             setResult(Activity.RESULT_OK, intent)
@@ -611,7 +610,7 @@ class ChangeBackground : ComponentActivity() {
 
 
     private fun removeBackgroundAPI(file: File): ByteArray {
-        val apiKey = "j35ETMJQXjqEmZ2mjwCAxBPb"
+        val apiKey = "3Sx9cEMgxSnHjcKPboeehoh7"
         val client = OkHttpClient()
         val body = MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart("image_file", "image.jpg", RequestBody.create("image/jpeg".toMediaType(), file)).build()
         val request = Request.Builder().url("https://api.remove.bg/v1.0/removebg").addHeader("X-Api-Key", apiKey).post(body).build()

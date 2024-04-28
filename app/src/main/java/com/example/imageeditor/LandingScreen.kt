@@ -92,7 +92,7 @@ fun ImageEditorScreen() {
     val viewModel: ImageViewModel = viewModel()
     Column(modifier = Modifier
         .fillMaxHeight(1f)
-        ) {
+    ) {
         HeaderSection(viewModel)
         ImagePreviewSection(viewModel)
         EditingOptions(viewModel)
@@ -119,7 +119,7 @@ fun HeaderSection(viewModel: ImageViewModel) {
                 .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(30.dp)),
 
 
-        ) {
+            ) {
             Text(
                 text = "Save",
                 style = TextStyle(fontSize = 14.sp),
@@ -225,7 +225,7 @@ fun EditingOptions(viewModel: ImageViewModel) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val Launcher = rememberLauncherForActivityResult(
-    ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.getStringExtra("imageUri")?.let {
