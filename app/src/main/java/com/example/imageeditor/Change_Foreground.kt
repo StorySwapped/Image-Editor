@@ -60,11 +60,9 @@ class ChangeForeground : ComponentActivity() {
     private var displayed by mutableStateOf<Bitmap?>(null)
     private var original by mutableStateOf<Bitmap?>(null)
     private var initial by mutableStateOf<Bitmap?>(null)
-
-    private var tickConfirmation by mutableStateOf(false)
-    private var crossConfirmation by mutableStateOf(false)
-
     private var selectedColor by mutableStateOf(Color.Black)
+    private var inimg: Bitmap? = null
+    private var finimg: Bitmap? = null
     private val colors = listOf(
         Color.Red, Color.Green, Color.Blue, Color.Magenta, Color.Yellow,
         Color.Cyan, Color.White, Color.Gray, Color.DarkGray, Color(0xFFA52A2A),
@@ -72,6 +70,10 @@ class ChangeForeground : ComponentActivity() {
         Color(0xFF4682B4), Color(0xFFDC143C),  Color(0xFF800080),
         Color(0xFF2F4F4F), Color(0xFF8B0000), Color(0xFF2E8B57), Color(0xFFD2691E)
     )
+
+
+    private var tickConfirmation by mutableStateOf(false)
+    private var crossConfirmation by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,7 +85,6 @@ class ChangeForeground : ComponentActivity() {
         }
         getImage(imageUri)
     }
-
     private fun getImage(imageUri: Uri) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -94,6 +95,7 @@ class ChangeForeground : ComponentActivity() {
                     original = bitmap
                     displayed = bitmap
                     initial = bitmap
+                    inimg = bitmap
                     println("Calling detectBackground()")
                     detectBackground()
 
@@ -367,30 +369,56 @@ class ChangeForeground : ComponentActivity() {
     }
 
 
-    @Composable
-    fun CrossIcon() {
-        Canvas(modifier = Modifier.size(24.dp)) {
-            drawLine(
-                color = Color.White,
-                start = Offset(0f, 0f),
-                end = Offset(size.width, size.height),
-                strokeWidth = 2f
-            )
-            drawLine(
-                color = Color.White,
-                start = Offset(0f, size.height),
-                end = Offset(size.width, 0f),
-                strokeWidth = 2f
-            )
+    private fun changeForegroundColor(bitmap: Bitmap, color: Color) {
+        val newBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+        val width = newBitmap.width
+        val height = newBitmap.height
+        val pixels = IntArray(width * height)
+        newBitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+
+        for (i in pixels.indices) {
+            if (isForegroundPixel(pixels[i])) {
+                pixels[i] = color.toArgb()
+            }
+        }
+
+        newBitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+
+        finimg = newBitmap
+    }
+    private fun applyColor(color: Color) {
+        finimg?.let { bitmap ->
+            changeForegroundColor(bitmap, color)
+            selectedColor = color
+            val scaleX = original!!.width.toFloat() / finimg!!.width.toFloat()
+            val scaleY = original!!.height.toFloat() / finimg!!.height.toFloat()
+            if (scaleX < 1 || scaleY < 1) {
+                val scale = minOf(scaleX, scaleY)
+                finimg = Bitmap.createScaledBitmap(
+                    finimg!!,
+                    (finimg!!.width * scale).toInt(),
+                    (finimg!!.height * scale).toInt(),
+                    true
+                )
+            } else {
+                val scaleX = original!!.width.toFloat() / finimg!!.width.toFloat()
+                val scaleY = original!!.height.toFloat() / finimg!!.height.toFloat()
+                finimg = Bitmap.createScaledBitmap(
+                    finimg!!,
+                    (finimg!!.width * scaleX).toInt(),
+                    (finimg!!.height * scaleY).toInt(),
+                    true
+                )
+            }
         }
     }
 
-
-    private fun applyColor(color: Color) {
-        displayed?.let { bitmap ->
-            changeImageColor(bitmap, color)
-            selectedColor = color
-        }
+    private fun isForegroundPixel(pixel: Int): Boolean {
+        val alpha = android.graphics.Color.alpha(pixel)
+        val red = android.graphics.Color.red(pixel)
+        val green = android.graphics.Color.green(pixel)
+        val blue = android.graphics.Color.blue(pixel)
+        return alpha > 0 && (red > 128 || green > 128 || blue > 128)
     }
 
     private fun changeImageColor(bitmap: Bitmap, color: Color) {
@@ -411,25 +439,6 @@ class ChangeForeground : ComponentActivity() {
         displayed = newBitmap
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == 1 && resultCode == RESULT_OK && data!= null) {
-            image = data.data
-            getImage()
-        }
-    }
-
-    private fun getImage() {
-        image?.let { uri ->
-            val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-            displayed = bitmap
-            original = bitmap
-            initial = bitmap
-            detectBackground()
-        }
-    }
-
     private fun detectBackground() {
         original?.let { bitmap ->
             val temp = File.createTempFile("temp", ".jpeg", cacheDir)
@@ -440,6 +449,7 @@ class ChangeForeground : ComponentActivity() {
                     val removed = removeBackgroundAPI(temp)
                     val newBitmap = BitmapFactory.decodeByteArray(removed, 0, removed.size)
                     withContext(Dispatchers.Main) {
+                        finimg=newBitmap
                         displayed = newBitmap
                     }
                 } catch (e: Exception) {
@@ -459,18 +469,21 @@ class ChangeForeground : ComponentActivity() {
     }
 
     private suspend fun removeBackgroundAPI(file: File): ByteArray {
-        val apiKey = "3Sx9cEMgxSnHjcKPboeehoh7"
+        val apiKey = "VonrhxHEBhJBeBg8bi786rCR"
         val client = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .build()
         val body = MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart("image_file", "image.jpg", RequestBody.create("image/jpeg".toMediaType(), file)).build()
         val request = Request.Builder().url("https://api.remove.bg/v1.0/removebg").addHeader("X-Api-Key", apiKey).post(body).build()
+
         val response = client.newCall(request).execute()
         if (!response.isSuccessful) {
             throw Exception("Failure in removal: ${response.message}")
         }
         val type = response.header("Content-Type")
+
+
         if (type?.startsWith("application/json") == true) {
             val json = JSONObject(response.body?.string()?: "")
             val image = json.getJSONObject("data").getString("result")
@@ -479,14 +492,25 @@ class ChangeForeground : ComponentActivity() {
             return response.body?.bytes()?: throw Exception("Empty")
         } else {
             throw Exception("Unexpected response type: $type")
-
         }
-
     }
+
+    private fun saveImage() {
+        displayed?.let { bitmap ->
+            val file = File(cacheDir, "image_next.jpg")
+            bitmap.writeBitmap(file)
+            val intent = Intent().apply {
+                putExtra("image", file.toUri().toString())
+            }
+            setResult(Activity.RESULT_OK, intent)
+            finish()
+        }
+    }
+
 
     private fun sendtoMain(bitmap: Bitmap?) {
         bitmap?.let {
-            val file = File(cacheDir, "image_next.jpg")
+            val file = File(cacheDir, "image.jpg")
             it.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(file))
             val intent = Intent().apply {
                 putExtra("imageUri", file.toUri().toString())
@@ -496,5 +520,30 @@ class ChangeForeground : ComponentActivity() {
             finish()
         }
     }
+
+    private fun combineImages() {
+        inimg?.let { inBitmap ->
+            finimg?.let { finBitmap ->
+                val combinedBitmap =
+                    Bitmap.createBitmap(inBitmap.width, inBitmap.height, Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(combinedBitmap)
+                canvas.drawBitmap(inBitmap, 0f, 0f, null) // draw background from inimg
+
+                val left = (inBitmap.width - finBitmap.width) / 2f
+                val top = (inBitmap.height - finBitmap.height) / 2f
+                canvas.drawBitmap(
+                    finBitmap,
+                    left,
+                    top,
+                    null
+                ) // draw foreground from finimg with scaling and centering
+                displayed = combinedBitmap
+            }
+        }
+    }
+
+
 }
+
+
 
