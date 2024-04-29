@@ -577,6 +577,7 @@ class ChangeBackground : ComponentActivity() {
     }
 
 
+
     private fun detectBackground() {
         println("detectBackground function called")
         original?.let { bitmap ->
@@ -610,7 +611,7 @@ class ChangeBackground : ComponentActivity() {
 
 
     private fun removeBackgroundAPI(file: File): ByteArray {
-        val apiKey = "G18aJvFRMT57pu2mbuBFpo4R"
+        val apiKey = "xNxmsa52YfVFfYr8i1YQPd9k"
         val client = OkHttpClient()
         val body = MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart("image_file", "image.jpg", RequestBody.create("image/jpeg".toMediaType(), file)).build()
         val request = Request.Builder().url("https://api.remove.bg/v1.0/removebg").addHeader("X-Api-Key", apiKey).post(body).build()

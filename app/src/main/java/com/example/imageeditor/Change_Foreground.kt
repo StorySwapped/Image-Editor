@@ -394,24 +394,16 @@ class ChangeForeground : ComponentActivity() {
             val scaleY = original!!.height.toFloat() / finimg!!.height.toFloat()
             if (scaleX < 1 || scaleY < 1) {
                 val scale = minOf(scaleX, scaleY)
-                finimg = Bitmap.createScaledBitmap(
-                    finimg!!,
-                    (finimg!!.width * scale).toInt(),
-                    (finimg!!.height * scale).toInt(),
-                    true
-                )
+                finimg = Bitmap.createScaledBitmap(finimg!!, (finimg!!.width * scale).toInt(), (finimg!!.height * scale).toInt(), true)
             } else {
                 val scaleX = original!!.width.toFloat() / finimg!!.width.toFloat()
                 val scaleY = original!!.height.toFloat() / finimg!!.height.toFloat()
-                finimg = Bitmap.createScaledBitmap(
-                    finimg!!,
-                    (finimg!!.width * scaleX).toInt(),
-                    (finimg!!.height * scaleY).toInt(),
-                    true
-                )
+                finimg = Bitmap.createScaledBitmap(finimg!!, (finimg!!.width * scaleX).toInt(), (finimg!!.height * scaleY).toInt(), true)
             }
+            combineImages()
         }
     }
+
 
     private fun isForegroundPixel(pixel: Int): Boolean {
         val alpha = android.graphics.Color.alpha(pixel)
@@ -420,6 +412,7 @@ class ChangeForeground : ComponentActivity() {
         val blue = android.graphics.Color.blue(pixel)
         return alpha > 0 && (red > 128 || green > 128 || blue > 128)
     }
+
 
     private fun changeImageColor(bitmap: Bitmap, color: Color) {
         val newBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
@@ -461,6 +454,7 @@ class ChangeForeground : ComponentActivity() {
         }
     }
 
+
     private fun Bitmap.writeBitmap(file: File) {
         val output = file.outputStream()
         this.compress(Bitmap.CompressFormat.JPEG, 100, output)
@@ -468,8 +462,9 @@ class ChangeForeground : ComponentActivity() {
         output.close()
     }
 
+
     private suspend fun removeBackgroundAPI(file: File): ByteArray {
-        val apiKey = "G18aJvFRMT57pu2mbuBFpo4R"
+        val apiKey = "VonrhxHEBhJBeBg8bi786rCR"
         val client = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
@@ -494,6 +489,8 @@ class ChangeForeground : ComponentActivity() {
             throw Exception("Unexpected response type: $type")
         }
     }
+
+
 
     private fun saveImage() {
         displayed?.let { bitmap ->
