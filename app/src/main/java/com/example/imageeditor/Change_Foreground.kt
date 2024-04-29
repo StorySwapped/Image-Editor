@@ -469,7 +469,7 @@ class ChangeForeground : ComponentActivity() {
     }
 
     private suspend fun removeBackgroundAPI(file: File): ByteArray {
-        val apiKey = "VonrhxHEBhJBeBg8bi786rCR"
+        val apiKey = "G18aJvFRMT57pu2mbuBFpo4R"
         val client = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)

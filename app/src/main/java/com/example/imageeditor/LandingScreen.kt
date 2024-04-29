@@ -323,7 +323,17 @@ fun EditingOptions(viewModel: ImageViewModel) {
         }
 
         IconButton(
-            onClick = { selectedOption("Advanced Editing") },
+            onClick = {
+                if (viewModel.imageUri == null){
+                    error = true
+                }
+                else {
+                    val intent = Intent(context, AdvanceEditing::class.java).apply {
+                        putExtra("imageUri", viewModel.imageUri.toString())
+                    }
+                    Launcher.launch(intent)
+                }
+            },
             modifier = Modifier
                 .size(100.dp)
         ) {

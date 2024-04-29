@@ -168,7 +168,7 @@ class ChangeBackground : ComponentActivity() {
                     )
                     {
                         Image(
-                            painter = painterResource(id = R.drawable.undo1),
+                            painter = painterResource(id = R.drawable.ic_none),
                             contentDescription = "Remove Background",
                             modifier = Modifier.size(22.dp),
                             contentScale = ContentScale.Fit
@@ -187,7 +187,7 @@ class ChangeBackground : ComponentActivity() {
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.undo1),
+                            painter = painterResource(id = R.drawable.ic_addv),
                             contentDescription = "Add Value",
                             modifier = Modifier.size(22.dp),
                             contentScale = ContentScale.Fit
@@ -214,7 +214,7 @@ class ChangeBackground : ComponentActivity() {
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.undo1),
+                            painter = painterResource(id = R.drawable.ic_add),
                             contentDescription = "Upload Image",
                             modifier = Modifier.size(36.dp),
                             contentScale = ContentScale.Fit
@@ -610,7 +610,7 @@ class ChangeBackground : ComponentActivity() {
 
 
     private fun removeBackgroundAPI(file: File): ByteArray {
-        val apiKey = "3Sx9cEMgxSnHjcKPboeehoh7"
+        val apiKey = "G18aJvFRMT57pu2mbuBFpo4R"
         val client = OkHttpClient()
         val body = MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart("image_file", "image.jpg", RequestBody.create("image/jpeg".toMediaType(), file)).build()
         val request = Request.Builder().url("https://api.remove.bg/v1.0/removebg").addHeader("X-Api-Key", apiKey).post(body).build()
