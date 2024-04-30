@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -137,14 +138,13 @@ class BasicEditing : ComponentActivity() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 6.dp, bottom = 6.dp)
+                .padding(top = 10.dp, bottom = 8.dp)
                 .background(Color.Black),
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
                 text = "Basic Editing",
                 color = Color(android.graphics.Color.parseColor("#F9C706")),
-                modifier = Modifier.padding(top = 8.dp),
                 textAlign = TextAlign.Center,
                 fontSize = 25.sp,
                 fontFamily = FontFamily(Font(R.font.sansserif))
@@ -199,13 +199,13 @@ class BasicEditing : ComponentActivity() {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(170.dp)
-                .padding(horizontal = 16.dp)
+                .absolutePadding(top = 15.dp, left = 16.dp, right = 16.dp)
                 .verticalScroll(scrollState)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp, bottom = 4.dp),
+                    .padding(bottom = 4.dp),
                 horizontalArrangement = Arrangement.Absolute.Left
 
             ) {
@@ -216,12 +216,11 @@ class BasicEditing : ComponentActivity() {
                 //        .size(70.dp),
                 //)
                 Text(
-                    text = "Brightness: ",
-                    style = TextStyle(fontSize = 15.sp),
+                    text = "Brightness:  ",
+                    style = TextStyle(fontSize = 18.sp),
                     color = Color(android.graphics.Color.parseColor("#F9C706")),
                 )
                 EditingFeatureSlider(
-                    label = "Brightness",
                     value = brightness,
                     onValueChange = { brightness = it }
                 )
@@ -234,12 +233,11 @@ class BasicEditing : ComponentActivity() {
 
             ) {
                 Text(
-                    text = "Contrast:   ",
-                    style = TextStyle(fontSize = 15.sp),
+                    text = "Contrast:     ",
+                    style = TextStyle(fontSize = 18.sp),
                     color = Color(android.graphics.Color.parseColor("#F9C706")),
                 )
                 EditingFeatureSlider(
-                    label = "Contrast",
                     value = contrast,
                     onValueChange = { contrast = it }
                 )
@@ -252,12 +250,11 @@ class BasicEditing : ComponentActivity() {
 
             ) {
                 Text(
-                    text = "Hue:        ",
-                    style = TextStyle(fontSize = 15.sp),
+                    text = "Hue:              ",
+                    style = TextStyle(fontSize = 18.sp),
                     color = Color(android.graphics.Color.parseColor("#F9C706")),
                 )
                 EditingFeatureSlider(
-                    label = "Hue",
                     value = hue,
                     onValueChange = { hue = it }
                 )
@@ -270,12 +267,11 @@ class BasicEditing : ComponentActivity() {
 
             ) {
                 Text(
-                    text = "Saturation: ",
-                    style = TextStyle(fontSize = 15.sp),
+                    text = "Saturation:  ",
+                    style = TextStyle(fontSize = 18.sp),
                     color = Color(android.graphics.Color.parseColor("#F9C706")),
                 )
                 EditingFeatureSlider(
-                    label = "Saturation",
                     value = saturation,
                     onValueChange = { saturation = it }
                 )
@@ -289,12 +285,11 @@ class BasicEditing : ComponentActivity() {
 
             ) {
                 Text(
-                    text = "Sharpness:  ",
-                    style = TextStyle(fontSize = 15.sp),
+                    text = "Sharpness:   ",
+                    style = TextStyle(fontSize = 18.sp),
                     color = Color(android.graphics.Color.parseColor("#F9C706")),
                 )
                 EditingFeatureSlider(
-                    label = "Sharpness",
                     value = sharpness,
                     onValueChange = { sharpness = it }
                 )
@@ -307,12 +302,11 @@ class BasicEditing : ComponentActivity() {
 
             ) {
                 Text(
-                    text = "Shadows:    ",
-                    style = TextStyle(fontSize = 15.sp),
+                    text = "Shadows:     ",
+                    style = TextStyle(fontSize = 18.sp),
                     color = Color(android.graphics.Color.parseColor("#F9C706")),
                 )
                 EditingFeatureSlider(
-                    label = "Shadows",
                     value = shadows,
                     onValueChange = { shadows = it }
                 )
@@ -462,30 +456,18 @@ class BasicEditing : ComponentActivity() {
 
     @Composable
     fun EditingFeatureSlider(
-        label: String,
         value: Float,
         onValueChange: (Float) -> Unit,
         range: ClosedFloatingPointRange<Float> = 0f..2f // Default range
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
-        ) {
-            Text(
-                text = label,
-                fontSize = 18.sp
-            )
-            Slider(
-                value = value,
-                onValueChange = onValueChange,
-                valueRange = range,
-                steps = 100, // Optionally adjust steps
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = range,
+            steps = 1000,
+        )
 
+    }
     fun saveEditedImage(
         context: Context,
         brightness: Float,
