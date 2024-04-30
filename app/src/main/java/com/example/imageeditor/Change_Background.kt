@@ -417,7 +417,7 @@ class ChangeBackground : ComponentActivity() {
                 Button(
                     onClick = { crossConfirmation = false },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = androidx.compose.ui.graphics.Color.Black
+                        containerColor = Color.Black
                     )
                 ) {
 

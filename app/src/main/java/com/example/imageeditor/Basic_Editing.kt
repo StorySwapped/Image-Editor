@@ -1,65 +1,178 @@
 package com.example.imageeditor
 
-
+import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ColorMatrix
-import android.graphics.Color
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.HorizontalAlignmentLine
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import okhttp3.*
+import androidx.core.net.toUri
+import com.example.imageeditor.ui.theme.ImageEditorTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 import kotlin.math.cos
 import kotlin.math.sin
 
-class BasicEditing : ComponentActivity() {
 
+class BasicEditing : ComponentActivity() {
+    private var initial by mutableStateOf<Bitmap?>(null)
     private var displayed by mutableStateOf<ImageBitmap?>(null)
     private var original by mutableStateOf<ImageBitmap?>(null)
 
-    @RequiresApi(Build.VERSION_CODES.P)
+    private var tickConfirmation by mutableStateOf(false)
+    private var crossConfirmation by mutableStateOf(false)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val imageUriString = intent.getStringExtra("imageUri")
         val imageUri = Uri.parse(imageUriString)
+
         val inputStream = contentResolver.openInputStream(imageUri)
         val bitmap = BitmapFactory.decodeStream(inputStream)
         original = bitmap.asImageBitmap()
         displayed = bitmap.asImageBitmap()
+
         setContent {
-            BasicEditingScreen()
+
+            ImageEditorTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color.Black
+
+                ) {
+                    Layout()
+                }
+            }
+            getImage(imageUri)
+        }
+
+    }
+
+    private fun getImage(imageUri: Uri) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val inputStream = contentResolver.openInputStream(imageUri)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+
+                withContext(Dispatchers.Main) {
+                    original = bitmap.asImageBitmap()
+                    displayed = bitmap.asImageBitmap()
+                    initial = bitmap
+                    println("Calling detectBackground()")
+                }
+
+                inputStream?.close()
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+    @Composable
+    fun Layout() {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+        ) {
+            Title()
+            ImagePreview()
+            EditingOptions()
+            TickCross()
+        }
+    }
+    @Composable
+    fun Title()
+    {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp, bottom = 6.dp)
+                .background(Color.Black),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Basic Editing",
+                color = Color(android.graphics.Color.parseColor("#F9C706")),
+                modifier = Modifier.padding(top = 8.dp),
+                textAlign = TextAlign.Center,
+                fontSize = 25.sp,
+                fontFamily = FontFamily(Font(R.font.sansserif))
+            )
         }
     }
 
     @Composable
-    fun BasicEditingScreen() {
+    fun ImagePreview(){
+        Box(
+            modifier = Modifier
+                .size(520.dp)
+                .background(Color.Black),
+            contentAlignment = Alignment.Center
+        ) {
+            displayed?.let {
+                Image(
+                    bitmap = it,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun EditingOptions() {
         var brightness by remember { mutableStateOf(1f) }
         var contrast by remember { mutableStateOf(1f) }
         var hue by remember { mutableStateOf(0f) }
@@ -81,64 +194,269 @@ class BasicEditing : ComponentActivity() {
             ).asImageBitmap()
         }
 
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(170.dp)
                 .padding(horizontal = 16.dp)
+                .verticalScroll(scrollState)
         ) {
-            displayed?.let { bitmap ->
-                Image(
-                    bitmap = bitmap,
-                    contentDescription = "Edited Image",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp, bottom = 4.dp),
+                horizontalArrangement = Arrangement.Absolute.Left
+
+            ) {
+                //Image(
+                //    painter = painterResource(R.drawable.brightness),
+                //    contentDescription = null,
+                //    modifier = Modifier
+                //        .size(70.dp),
+                //)
+                Text(
+                    text = "Brightness: ",
+                    style = TextStyle(fontSize = 15.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    label = "Brightness",
+                    value = brightness,
+                    onValueChange = { brightness = it }
                 )
             }
-            Spacer(modifier = Modifier.size(15.dp))
-            EditingFeatureSlider(
-                label = "Brightness",
-                value = brightness,
-                onValueChange = { brightness = it }
-            )
-            EditingFeatureSlider(
-                label = "Contrast",
-                value = contrast,
-                onValueChange = { contrast = it }, // Adjusting the value
-                range = 0.5f..1.5f // Adjusted range for contrast
-            )
-            EditingFeatureSlider(
-                label = "Hue",
-                value = hue,
-                onValueChange = { hue = it },
-                range=-2f..2f
-            )
-            EditingFeatureSlider(
-                label = "Saturation",
-                value = saturation,
-                onValueChange = { saturation = it }
-            )
-            EditingFeatureSlider(
-                label = "Sharpness",
-                value = sharpness,
-                onValueChange = { sharpness = it },
-                range=0f..0.4f
-            )
-            EditingFeatureSlider(
-                label = "Shadows",
-                value = shadows,
-                onValueChange = { shadows = it },
-                range=-1.5f..1.5f
-            )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
 
-            Button(onClick = {
-                saveEditedImage(this@BasicEditing, brightness, contrast, hue, saturation, sharpness, shadows)
-            }) {
-                Text(text = "Save Image and Go Back")
-                Color.BLUE
+            ) {
+                Text(
+                    text = "Contrast:   ",
+                    style = TextStyle(fontSize = 15.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    label = "Contrast",
+                    value = contrast,
+                    onValueChange = { contrast = it }
+                )
             }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
+
+            ) {
+                Text(
+                    text = "Hue:        ",
+                    style = TextStyle(fontSize = 15.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    label = "Hue",
+                    value = hue,
+                    onValueChange = { hue = it }
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
+
+            ) {
+                Text(
+                    text = "Saturation: ",
+                    style = TextStyle(fontSize = 15.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    label = "Saturation",
+                    value = saturation,
+                    onValueChange = { saturation = it }
+                )
+            }
+
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
+
+            ) {
+                Text(
+                    text = "Sharpness:  ",
+                    style = TextStyle(fontSize = 15.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    label = "Sharpness",
+                    value = sharpness,
+                    onValueChange = { sharpness = it }
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
+
+            ) {
+                Text(
+                    text = "Shadows:    ",
+                    style = TextStyle(fontSize = 15.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    label = "Shadows",
+                    value = shadows,
+                    onValueChange = { shadows = it }
+                )
+            }
+        }
+    }
+
+
+
+    @Composable
+    fun TickCross(){
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black)
+                    .clickable {
+                        crossConfirmation = true
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                CrossIcon()
+
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black)
+                    .clickable {
+                        tickConfirmation = true
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                TickIcon()
+            }
+        }
+
+        if(tickConfirmation){
+            showBoxTick()
+        }
+
+        if(crossConfirmation){
+            showBoxCross()
+        }
+    }
+
+    @Composable
+    fun showBoxTick() {
+        AlertDialog(
+            onDismissRequest = { tickConfirmation = false },
+            title = {
+                Text(text = "Confirmation")
+            },
+            text = {
+                Text(text = "Are you sure you want to save changes?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        sendtoMain(displayed?.asAndroidBitmap())
+                        tickConfirmation = false
+                    },colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Black
+                    )
+                ) {
+                    Text(text = "Yes")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { tickConfirmation = false },colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Black
+                    )
+                ) {
+                    Text(text = "No")
+                }
+            }
+        )
+    }
+
+    @Composable
+    fun showBoxCross() {
+        AlertDialog(
+            onDismissRequest = { crossConfirmation= false },
+            title = {
+                Text(text = "Confirmation")
+            },
+            text = {
+                Text(text = "Are you sure you want to discard changes?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        sendtoMain(initial)
+                        crossConfirmation = false
+                    },colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Black
+                    )
+
+                ) {
+                    Text(text = "Yes")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { crossConfirmation = false },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Black
+                    )
+                ) {
+                    Text( text = "No")
+                }
+            }
+        )
+    }
+
+
+    @Preview(showBackground = true)
+    @Composable
+    fun ImageEditorPreview() {
+        ImageEditorTheme {
+            Layout()
+        }
+    }
+
+    private fun sendtoMain(bitmap: Bitmap?) {
+        bitmap?.let {
+            val file = File(cacheDir, "image_next.jpg")
+            it.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(file))
+            val intent = Intent().apply {
+                putExtra("imageUri", file.toUri().toString())
+            }
+            setResult(Activity.RESULT_OK, intent)
+            finish()
         }
     }
 
@@ -359,19 +677,19 @@ class BasicEditing : ComponentActivity() {
                         val pixel = pixels[(y + ky) * width + (x + kx)]
                         val weight = kernel[ky + 1][kx + 1]
 
-                        sumR += Color.red(pixel) * weight
-                        sumG += Color.green(pixel) * weight
-                        sumB += Color.blue(pixel) * weight
+                        sumR += android.graphics.Color.red(pixel) * weight
+                        sumG += android.graphics.Color.green(pixel) * weight
+                        sumB += android.graphics.Color.blue(pixel) * weight
                     }
                 }
 
                 // Ensure RGB values are within valid range
-                val newR = (Color.red(pixels[y * width + x]) + sharpness * sumR).toInt().coerceIn(0, 255)
-                val newG = (Color.green(pixels[y * width + x]) + sharpness * sumG).toInt().coerceIn(0, 255)
-                val newB = (Color.blue(pixels[y * width + x]) + sharpness * sumB).toInt().coerceIn(0, 255)
+                val newR = (android.graphics.Color.red(pixels[y * width + x]) + sharpness * sumR).toInt().coerceIn(0, 255)
+                val newG = (android.graphics.Color.green(pixels[y * width + x]) + sharpness * sumG).toInt().coerceIn(0, 255)
+                val newB = (android.graphics.Color.blue(pixels[y * width + x]) + sharpness * sumB).toInt().coerceIn(0, 255)
 
                 // Set the new pixel color
-                pixels[y * width + x] = Color.rgb(newR, newG, newB)
+                pixels[y * width + x] = android.graphics.Color.rgb(newR, newG, newB)
             }
         }
 
@@ -391,9 +709,9 @@ class BasicEditing : ComponentActivity() {
             val color = pixels[i]
 
             // Extract the RGB components
-            val red = Color.red(color)
-            val green = Color.green(color)
-            val blue = Color.blue(color)
+            val red = android.graphics.Color.red(color)
+            val green = android.graphics.Color.green(color)
+            val blue = android.graphics.Color.blue(color)
 
             // Calculate luminance (brightness)
             val luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255
@@ -407,7 +725,7 @@ class BasicEditing : ComponentActivity() {
             val adjustedBlue = (blue * (1 - scaledShadows * luminance)).toInt().coerceIn(0, 255)
 
             // Combine adjusted RGB components back into a color
-            val adjustedColor = Color.argb(Color.alpha(color), adjustedRed, adjustedGreen, adjustedBlue)
+            val adjustedColor = android.graphics.Color.argb(android.graphics.Color.alpha(color), adjustedRed, adjustedGreen, adjustedBlue)
             pixels[i] = adjustedColor
         }
 
@@ -416,12 +734,4 @@ class BasicEditing : ComponentActivity() {
 
     }
 
-
-
-
-
-
-
-
 }
-
