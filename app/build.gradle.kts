@@ -75,7 +75,11 @@ dependencies {
     annotationProcessor(libs.glide.compiler)
     implementation(libs.coil.compose)
     implementation(libs.compose.runtime)
-
+    implementation("com.github.CanHub:Android-Image-Cropper:4.0.0")
+    implementation ("io.coil-kt:coil-compose:2.1.0")
+    implementation ("androidx.activity:activity-ktx:1.9.0")
+    implementation ("androidx.fragment:fragment-ktx:1.6.2")
+    implementation ("io.coil-kt:coil-compose:2.2.2")
 
 
 }

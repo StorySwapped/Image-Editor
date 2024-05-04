@@ -66,6 +66,14 @@ import com.example.imageeditor.ui.theme.ImageEditorTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.graphics.Color.parseColor
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.core.graphics.translationMatrix
+import coil.compose.rememberImagePainter
 
 
 class LandingScreen : ComponentActivity() {
@@ -75,8 +83,9 @@ class LandingScreen : ComponentActivity() {
         setContent {
             ImageEditorTheme {
                 Surface(
+                    color = Color(parseColor("#653355")),
                     modifier = Modifier.fillMaxSize(),
-                    color = Color.Black
+
 
                 ) {
                     ImageEditorScreen()
@@ -85,17 +94,29 @@ class LandingScreen : ComponentActivity() {
         }
     }
 }
-
+var button_color = "#351D4A"
 
 @Composable
 fun ImageEditorScreen() {
+    val context = LocalContext.current
     val viewModel: ImageViewModel = viewModel()
-    Column(modifier = Modifier
-        .fillMaxHeight(1f)
-    ) {
-        HeaderSection(viewModel)
-        ImagePreviewSection(viewModel)
-        EditingOptions(viewModel)
+
+    Box() {
+        Image(
+            painter = painterResource(id = R.drawable.back17), // Replace R.drawable.background_image with your image resource
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxHeight(1f)
+        ) {
+            HeaderSection(viewModel)
+            ImagePreviewSection(viewModel)
+            EditingOptions(viewModel)
+        }
     }
 }
 
@@ -104,61 +125,66 @@ fun HeaderSection(viewModel: ImageViewModel) {
     var save by remember { mutableStateOf(false) }
     var cancel by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .absolutePadding(bottom = 30.dp, left = 30.dp, right = 30.dp, top = 15.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        TextButton(
-            onClick = { save = true },
+
+    Box()
+    {
+        Row(
             modifier = Modifier
-                .height(32.dp)
-                .width(80.dp)
-                .background(Color.LightGray, shape = RoundedCornerShape(30.dp))
-                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(30.dp)),
+                .absolutePadding(bottom = 25.dp, left = 30.dp, right = 30.dp, top = 25.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            TextButton(
+                onClick = { save = true },
+                modifier = Modifier
+                    .height(30.dp)
+                    .width(80.dp)
+                    .background(Color(parseColor(button_color)), shape = RoundedCornerShape(15.dp))
 
 
             ) {
-            Text(
-                text = "Save",
-                style = TextStyle(fontSize = 14.sp),
-                color = Color.Black
-            )
-        }
+                Text(
+                    text = "Save",
+                    style = TextStyle(fontSize = 13.sp),
+                    color = Color(parseColor("#dddddd")),
+                    fontFamily = FontFamily(Font(R.font.sansserif))
 
-        TextButton(
-            onClick = { cancel = true },
-            modifier = Modifier
-                .width(80.dp)
-                .height(32.dp)
-                .background(Color.LightGray, shape = RoundedCornerShape(50.dp))
-                .border(BorderStroke(2.dp, Color.Gray), shape = RoundedCornerShape(50.dp)),
-        ) {
-            Text(
-                text = "Cancel",
-                style = TextStyle(fontSize = 14.sp),
-                color = Color.Black
-            )
-        }
+                )
+            }
 
-        if (save){
-            ConfirmationDialog("Are you sure you are done editing?", onConfirm = {
-                viewModel.saveImageToGallery(context)
-                viewModel.clearCurrentImage()
-                save = false
-            }, onDismiss = {
-                save = false
-            })
-        }
+            TextButton(
+                onClick = { cancel = true },
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(30.dp)
+                    .background(Color(parseColor(button_color)), shape = RoundedCornerShape(15.dp))
+            ) {
+                Text(
+                    text = "Cancel",
+                    style = TextStyle(fontSize = 13.sp),
+                    color = Color(parseColor("#dddddd")),
+                    fontFamily = FontFamily(Font(R.font.sansserif))
+                )
+            }
 
-        if (cancel) {
-            ConfirmationDialog("Are you sure you want to discard all changes?", onConfirm = {
-                viewModel.clearCurrentImage()
-                cancel = false
-            }, onDismiss = {
-                cancel = false
-            })
+            if (save) {
+                ConfirmationDialog("Are you sure you are done editing?", onConfirm = {
+                    viewModel.saveImageToGallery(context)
+                    viewModel.clearCurrentImage()
+                    save = false
+                }, onDismiss = {
+                    save = false
+                })
+            }
+
+            if (cancel) {
+                ConfirmationDialog("Are you sure you want to discard all changes?", onConfirm = {
+                    viewModel.clearCurrentImage()
+                    cancel = false
+                }, onDismiss = {
+                    cancel = false
+                })
+            }
         }
     }
 }
@@ -169,6 +195,12 @@ fun ImagePreviewSection(viewModel: ImageViewModel) {
     val imageBitmap = viewModel.imageBitmap.value
 
     Log.d("ImageEditor", "Composing ImagePreviewSection with URI: ${viewModel.imageUri}")
+
+    LaunchedEffect(key1 = viewModel.imageUri) {
+        viewModel.imageUri?.let {
+            viewModel.loadImage(it, context)
+        }
+    }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -188,34 +220,34 @@ fun ImagePreviewSection(viewModel: ImageViewModel) {
             viewModel.loadImage(it, context)
         }
     }
-
-    Box(
-        modifier = Modifier
-            .background(Color.Black)
-            .size(530.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        imageBitmap?.let {
-            Image(
-                painter = BitmapPainter(it),
-                contentDescription = "Displayed Image",
-                modifier = Modifier.fillMaxSize()
-            )
-        } ?: IconButton(
-            onClick = {
-                val pickImageIntent = Intent(Intent.ACTION_PICK).apply {
-                    type = "image/*"
-                }
-                imagePickerLauncher.launch(pickImageIntent)
-            },
-            modifier = Modifier.size(60.dp)
+    Box() {
+        Box(
+            modifier = Modifier
+                .size(540.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.add_photo),
-                contentDescription = "Add Image",
-                tint = Color.Gray,
-                modifier = Modifier.size(50.dp)
-            )
+            imageBitmap?.let {
+                Image(
+                    painter = BitmapPainter(it),
+                    contentDescription = "Displayed Image",
+                    modifier = Modifier.fillMaxSize()
+                )
+            } ?: IconButton(
+                onClick = {
+                    val pickImageIntent = Intent(Intent.ACTION_PICK).apply {
+                        type = "image/*"
+                    }
+                    imagePickerLauncher.launch(pickImageIntent)
+                },
+                modifier = Modifier.size(60.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.add_photo),
+                    contentDescription = "Add Image",
+                    tint = Color(parseColor("#BBBBBB")),
+                    modifier = Modifier.size(50.dp)
+                )
+            }
         }
     }
 }
@@ -244,34 +276,34 @@ fun EditingOptions(viewModel: ImageViewModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .absolutePadding(top = 30.dp, left = 30.dp, right = 250.dp),
+            .absolutePadding(top = 15.dp, left = 25.dp, right = 300.dp, bottom = 5.dp),
 
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
 
         IconButton(
-            onClick = { selectedOption("Undo") },
+            onClick = { viewModel.undo(context) },
             modifier = Modifier
                 .size(30.dp)
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.undo),
                 contentDescription = "Undo",
-                tint = Color.Gray,
-                modifier = Modifier.size(30.dp)  // Set the size of the Icon
+                tint = Color(parseColor("#dddddd")),
+                modifier = Modifier.size(25.dp)  // Set the size of the Icon
             )
         }
 
         IconButton(
-            onClick = { selectedOption("Redo") },
+            onClick = { viewModel.redo(context) },
             modifier = Modifier
                 .size(30.dp)
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.redo),
                 contentDescription = "Redo",
-                tint = Color.Gray,
-                modifier = Modifier.size(30.dp)
+                tint = Color(parseColor("#dddddd")),
+                modifier = Modifier.size(25.dp)
             )
         }
     }
@@ -281,6 +313,8 @@ fun EditingOptions(viewModel: ImageViewModel) {
         modifier = Modifier
             .horizontalScroll(scrollState)
             .fillMaxWidth()
+            .absolutePadding(top = 5.dp, bottom = 2.dp, left = 2.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
 
         IconButton(
@@ -296,29 +330,42 @@ fun EditingOptions(viewModel: ImageViewModel) {
                 }
             },
             modifier = Modifier
-                .size(100.dp)
+                .size(65.dp)
+                .padding(5.dp)
+                .background(Color(parseColor(button_color)), shape = RoundedCornerShape(15.dp))
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.basic_editing),
                 contentDescription = "Basic Editing",
-                tint = Color.Gray,
+                tint = Color(parseColor("#dddddd")),
                 modifier = Modifier
-                    .size(60.dp)  // Set the size of the Icon
+                    .size(50.dp)  // Set the size of the Icon
             )
         }
 
         IconButton(
-            onClick = { selectedOption("Cropping and Selection") },
-            modifier = Modifier
-                .size(100.dp)
+            onClick = {
+                if (viewModel.imageUri == null) {
+                error = true
+            } else {
+                val intent = Intent(context, SelectionaAndcropping::class.java).apply {
+                    putExtra("imageUri", viewModel.imageUri.toString())
+                }
 
+                Launcher.launch(intent)
+            }
+                      },
+            modifier = Modifier
+                .size(65.dp)
+                .padding(5.dp)
+                .background(Color(parseColor(button_color)), shape = RoundedCornerShape(15.dp))
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.crop),
                 contentDescription = "Cropping and Selection",
-                tint = Color.Gray,
+                tint = Color(parseColor("#dddddd")),
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(40.dp)
             )
         }
 
@@ -335,13 +382,15 @@ fun EditingOptions(viewModel: ImageViewModel) {
                 }
             },
             modifier = Modifier
-                .size(100.dp)
+                .size(65.dp)
+                .padding(5.dp)
+                .background(Color(parseColor(button_color)), shape = RoundedCornerShape(15.dp))
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.advanced_editing),
                 contentDescription = "Advanced Editing",
-                tint = Color.Gray,
-                modifier = Modifier.size(55.dp)
+                tint = Color(parseColor("#dddddd")),
+                modifier = Modifier.size(45.dp)
             )
         }
 
@@ -357,13 +406,16 @@ fun EditingOptions(viewModel: ImageViewModel) {
                     Launcher.launch(intent)
                 }
             },
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier
+                .size(65.dp)
+                .padding(5.dp)
+                .background(Color(parseColor(button_color)), shape = RoundedCornerShape(15.dp))
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.background_color_changer),
                 contentDescription = "Background Color Changer",
-                tint = Color.Gray,
-                modifier = Modifier.size(50.dp)
+                tint = Color(parseColor("#dddddd")),
+                modifier = Modifier.size(40.dp)
             )
         }
 
@@ -379,13 +431,16 @@ fun EditingOptions(viewModel: ImageViewModel) {
                     Launcher.launch(intent)
                 }
             },
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier
+                .size(65.dp)
+                .padding(5.dp)
+                .background(Color(parseColor(button_color)), shape = RoundedCornerShape(15.dp))
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.filter),
                 contentDescription = "Filters",
-                tint = Color.Gray,
-                modifier = Modifier.size(50.dp)
+                tint = Color(parseColor("#dddddd")),
+                modifier = Modifier.size(40.dp)
             )
         }
 
@@ -401,13 +456,15 @@ fun EditingOptions(viewModel: ImageViewModel) {
                 }
             },
             modifier = Modifier
-                .size(100.dp)
+                .size(65.dp)
+                .padding(5.dp)
+                .background(Color(parseColor(button_color)), shape = RoundedCornerShape(15.dp))
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.foreground_color_changer),
                 contentDescription = "Foreground Color Changer",
-                tint = Color.Gray,
-                modifier = Modifier.size(50.dp)
+                tint = Color(parseColor("#dddddd")),
+                modifier = Modifier.size(40.dp)
             )
         }
 
@@ -424,42 +481,49 @@ fun EditingOptions(viewModel: ImageViewModel) {
     Row(
         modifier = Modifier
             .horizontalScroll(scrollState, true)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .absolutePadding(top = 5.dp, left = 2.dp, right = 2.dp),
     ) {
         Text(
-            text = "       Basic Editing       ",
-            style = TextStyle(fontSize = 11.sp), // Sets the font size to 24sp
-            color = Color.LightGray
+            text = "    BASIC EDITING   ",
+            style = TextStyle(fontSize = 9.sp), // Sets the font size to 24sp
+            color = Color(parseColor("#dddddd")),
+            fontFamily = FontFamily(Font(R.font.sansserif))
         )
 
         Text(
-            text = "        Crop & Select     ",
-            style = TextStyle(fontSize = 11.sp),
-            color = Color.LightGray
+            text = "     CROP & SELECT   ",
+            style = TextStyle(fontSize = 9.sp),
+            color = Color(parseColor("#dddddd")),
+            fontFamily = FontFamily(Font(R.font.sansserif))
         )
 
         Text(
-            text = "      Advance Editing    ",
-            style = TextStyle(fontSize = 11.sp),
-            color = Color.LightGray
+            text = "  ADVANCE EDITING    ",
+            style = TextStyle(fontSize = 9.sp),
+            color = Color(parseColor("#dddddd")),
+            fontFamily = FontFamily(Font(R.font.sansserif))
         )
 
         Text(
-            text = "    Background Color    ",
-            style = TextStyle(fontSize = 11.sp),
-            color = Color.LightGray
+            text = "   BACKGROUND   ",
+            style = TextStyle(fontSize = 9.sp),
+            color = Color(parseColor("#dddddd")),
+            fontFamily = FontFamily(Font(R.font.sansserif))
         )
 
         Text(
-            text = "       Apply Filters     ",
-            style = TextStyle(fontSize = 11.sp),
-            color = Color.LightGray
+            text = "      APPLY FILTERS    ",
+            style = TextStyle(fontSize = 9.sp),
+            color = Color(parseColor("#dddddd")),
+            fontFamily = FontFamily(Font(R.font.sansserif))
         )
 
         Text(
-            text = "      Foreground Color   ",
-            style = TextStyle(fontSize = 11.sp),
-            color = Color.LightGray
+            text = "     FOREGROUND   ",
+            style = TextStyle(fontSize = 9.sp),
+            color = Color(parseColor("#dddddd")),
+            fontFamily = FontFamily(Font(R.font.sansserif))
         )
     }
 }
@@ -503,28 +567,45 @@ class ImageViewModel : ViewModel() {
     private var _imageBitmap = mutableStateOf<ImageBitmap?>(null)
     val imageBitmap: State<ImageBitmap?> = _imageBitmap
 
+    private val history = mutableListOf<Uri>()
+    private val future = mutableListOf<Uri>()
+
+    // Load image and manage state history correctly
     fun loadImage(uri: Uri, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            val inputStream = context.contentResolver.openInputStream(uri)
-            val bitmap = inputStream?.use { BitmapFactory.decodeStream(it) }
-            withContext(Dispatchers.Main) {
-                if (bitmap != null) {
-                    imageUri = uri
-                    _imageBitmap.value = bitmap.asImageBitmap()
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                BitmapFactory.decodeStream(inputStream)?.let { bitmap ->
+                    withContext(Dispatchers.Main) {
+                        _imageBitmap.value = bitmap.asImageBitmap()
+                        setCurrentImage(uri)
+                    }
                 }
             }
         }
     }
 
-
-    fun updateImage(resultUri: String?, context: Context) {
-        if (resultUri != null) {
-            val uri = Uri.parse(resultUri)
-            Log.d("ImageEditor", "Updating image URI to: $uri")
-            imageUri = uri
-            clearCurrentImage()
-            loadImage(uri, context)
+    // Implement undo logic
+    fun undo(context: Context) {
+        if (history.isNotEmpty()) {
+            future.add(0, imageUri!!)  // Push current to future
+            imageUri = history.removeLastOrNull()
+            imageUri?.let { loadImage(it, context) }
         }
+    }
+
+    fun redo(context: Context) {
+        if (future.isNotEmpty()) {
+            history.add(imageUri!!)  // Add current to history
+            imageUri = future.removeFirstOrNull()
+            imageUri?.let { loadImage(it, context) }
+        }
+    }
+
+    private fun setCurrentImage(uri: Uri) {
+        if (imageUri != null && imageUri != uri) {
+            history.add(imageUri!!)
+        }
+        imageUri = uri
     }
 
     fun saveImageToGallery(context: Context) {
@@ -547,14 +628,10 @@ class ImageViewModel : ViewModel() {
     fun clearCurrentImage() {
         imageUri = null
         _imageBitmap.value = null
+        history.clear()
+        future.clear()
     }
 }
-
-fun selectedOption(s: String) {
-
-}
-
-
 
 @Preview(showBackground = true)
 @Composable

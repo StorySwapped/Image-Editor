@@ -1,12 +1,12 @@
 package com.example.imageeditor
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
@@ -21,8 +21,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,8 +33,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,8 +48,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -52,11 +60,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import com.example.imageeditor.ui.theme.ImageEditorTheme
 import java.io.File
 import java.io.FileOutputStream
 
 
 class FilterManagement : ComponentActivity() {
+    public var tickConfirmation by mutableStateOf(false)
+    public var crossConfirmation by mutableStateOf(false)
     companion object {
         const val IMAGE_URI_EXTRA = "imageUri"
     }
@@ -69,25 +80,15 @@ class FilterManagement : ComponentActivity() {
         val bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(imageUri))
 
         setContent {
-            if (imageUriString != null) {
-                MyComposeScreen(this,bitmap)
-
-            }
-        }
-        fun sendToMain(bitmap: Bitmap?) {
-            val intent = Intent().apply {
-                if (bitmap != null) {
-                    val file = File(cacheDir, "image_next.jpg")
-                    bitmap.writeBitmap(file)
-                    putExtra("image", file.toUri().toString())
-                } else {
-                    putExtra("image", "") // Pass an empty string if no filter applied
+            ImageEditorTheme {
+                Surface(
+                    color = Color(android.graphics.Color.parseColor("#653355")),
+                    modifier = Modifier.fillMaxSize(),
+                    ) {
+                    MyComposeScreen(this,bitmap)
                 }
             }
-            setResult(Activity.RESULT_OK, intent)
-            finish()
         }
-
     }
 }
 
@@ -98,151 +99,311 @@ fun MyComposeScreen(context: Context,bitmap: Bitmap) {
     var selectedFilter by remember { mutableStateOf(Filter.None) }
     var originalBitmap by remember { mutableStateOf<Bitmap?>(null) }
     val contextForSending by remember { mutableStateOf(context) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color.Black)
-            .padding(8.dp),
-        verticalArrangement = Arrangement.Top
-    ) {
-        Text(
-            text = "FILTERS",
-            color = androidx.compose.ui.graphics.Color.White,
-            fontSize = 25.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            fontFamily = FontFamily(Font(R.font.sansserif)),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        )
-
-        // Load the original bitmap
-//        val imageResId = R.drawable.image
-//        val bitmap = BitmapFactory.decodeResource(LocalContext.current.resources, imageResId)
-        originalBitmap = bitmap
-
-        // Apply the selected filter to the original bitmap
-        val filteredBitmap = when (selectedFilter) {
-            Filter.None -> originalBitmap
-            Filter.Vignette -> applyVignetteFilter(originalBitmap!!)
-            Filter.Sepia -> applySepiaFilter(originalBitmap!!)
-            Filter.Saturate -> applyColorMatrixFilter(originalBitmap!!, saturateFilter)
-            Filter.Rotate -> applyColorMatrixFilter(originalBitmap!!, rotateFilter)
-            Filter.Posterize -> applyColorMatrixFilter(originalBitmap!!, posterizeFilter)
-            Filter.Negative -> applyColorMatrixFilter(bitmap, negativeFilter)
-            Filter.Tint -> applyColorMatrixFilter(bitmap, tintFilter)
-            Filter.Temperature -> applyColorMatrixFilter(bitmap, temperatureFilter)
-            Filter.Sharpen -> applyColorMatrixFilter(bitmap, sharpenFilter)
-
-        }
-
-        val imageToShow = filteredBitmap?.asImageBitmap() ?: bitmap.asImageBitmap()
-
-        //original image
+    var tickConfirmation by remember { mutableStateOf(false) }
+    var crossConfirmation by remember { mutableStateOf(false) }
+    var removeFilterConfirmation by remember { mutableStateOf(false) }
+    Box() {
         Image(
-            bitmap = imageToShow,
+            painter = painterResource(id = R.drawable.back17), // Replace R.drawable.background_image with your image resource
             contentDescription = null,
             modifier = Modifier
-                .height(500.dp)
-                .padding(top = 8.dp)
-                .fillMaxSize()
+                .fillMaxSize(),
+            contentScale = ContentScale.Crop
         )
-
-        // Buttons Row
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(
-                onClick = { selectedFilter = Filter.None },
-                modifier = Modifier.padding(end = 10.dp)
+            Text(
+                text = "Filters",
+                color = Color(android.graphics.Color.parseColor("#D0D0D0")),
+                modifier = Modifier.padding(bottom = 15.dp),
+                textAlign = TextAlign.Center,
+                fontSize = 30.sp,
+                fontFamily = FontFamily(Font(R.font.sansserif))
+            )
+
+            // Load the original bitmap
+//        val imageResId = R.drawable.image
+//        val bitmap = BitmapFactory.decodeResource(LocalContext.current.resources, imageResId)
+            originalBitmap = bitmap
+
+            // Apply the selected filter to the original bitmap
+            val filteredBitmap = when (selectedFilter) {
+                Filter.None -> originalBitmap
+                Filter.Vignette -> applyVignetteFilter(originalBitmap!!)
+                Filter.Sepia -> applySepiaFilter(originalBitmap!!)
+                Filter.Saturate -> applyColorMatrixFilter(originalBitmap!!, saturateFilter)
+                Filter.Rotate -> applyColorMatrixFilter(originalBitmap!!, rotateFilter)
+                Filter.Posterize -> applyColorMatrixFilter(originalBitmap!!, posterizeFilter)
+                Filter.Negative -> applyColorMatrixFilter(bitmap, negativeFilter)
+                Filter.Tint -> applyColorMatrixFilter(bitmap, tintFilter)
+                Filter.Temperature -> applyColorMatrixFilter(bitmap, temperatureFilter)
+                Filter.Sharpen -> applyColorMatrixFilter(bitmap, sharpenFilter)
+                Filter.auto -> applyColorMatrixFilter(bitmap, posterizeFilter)
+
+            }
+
+            val imageToShow = filteredBitmap?.asImageBitmap() ?: bitmap.asImageBitmap()
+
+            //original image
+            Image(
+                bitmap = imageToShow,
+                contentDescription = null,
+                modifier = Modifier
+                    .height(530.dp)
+                    .padding(bottom = 7.dp)
+                    .fillMaxSize()
+            )
+
+            // Buttons Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 5.dp),
+                horizontalArrangement = Arrangement.Absolute.Right
 
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.icon1),
-                    contentDescription = "Remove Filter",
-                    tint = androidx.compose.ui.graphics.Color.White,
-                    //   modifier = Modifier.size(22.dp)// Change the color here
-                )
+                IconButton(
+                    onClick = { selectedFilter = Filter.Sepia },
+                    modifier = Modifier
+                        .size(50.dp)
+                        .absolutePadding(right = 20.dp)
+
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.icon2),
+                        contentDescription = "Auto Apply Filter",
+                        tint = Color.White,
+                        modifier = Modifier.size(35.dp)
+                    )
+                }
             }
-            IconButton(
-                onClick = { selectedFilter = Filter.Sepia },
-                modifier = Modifier.padding(end = 10.dp)
+
+
+            // Horizontal Scrollable Row for Filters
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .absolutePadding(bottom = 2.dp)
+            ) {
+
+                FilterItem(
+                    "None",
+                    Filter.None,
+                    originalBitmap!!,
+                    isSelected = selectedFilter == Filter.None
+                ) { selectedFilter = it }
+                FilterItem(
+                    "Sepia",
+                    Filter.Sepia,
+                    originalBitmap!!,
+                    isSelected = selectedFilter == Filter.Sepia
+                ) { selectedFilter = it }
+                FilterItem(
+                    "Saturate",
+                    Filter.Saturate,
+                    originalBitmap!!,
+                    isSelected = selectedFilter == Filter.Saturate
+                ) { selectedFilter = it }
+                FilterItem(
+                    "Rotate",
+                    Filter.Rotate,
+                    originalBitmap!!,
+                    isSelected = selectedFilter == Filter.Rotate
+                ) { selectedFilter = it }
+                FilterItem(
+                    "Posterize",
+                    Filter.Posterize,
+                    originalBitmap!!,
+                    isSelected = selectedFilter == Filter.Posterize
+                ) { selectedFilter = it }
+                FilterItem(
+                    "Negative",
+                    Filter.Negative,
+                    originalBitmap!!,
+                    isSelected = selectedFilter == Filter.Negative
+                ) { selectedFilter = it }
+                FilterItem(
+                    "Tint",
+                    Filter.Tint,
+                    originalBitmap!!,
+                    isSelected = selectedFilter == Filter.Tint
+                ) { selectedFilter = it }
+                FilterItem(
+                    "Temperature",
+                    Filter.Temperature,
+                    originalBitmap!!,
+                    isSelected = selectedFilter == Filter.Temperature
+                ) { selectedFilter = it }
+                FilterItem(
+                    "Sharpen",
+                    Filter.Sharpen,
+                    originalBitmap!!,
+                    isSelected = selectedFilter == Filter.Sharpen
+                ) { selectedFilter = it }
+                FilterItem(
+                    "Vignette",
+                    Filter.Vignette,
+                    originalBitmap!!,
+                    isSelected = selectedFilter == Filter.Vignette
+                ) { selectedFilter = it }
+            }
+            // Bottom Row for Icons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
 
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.icon2),
-                    contentDescription = "Auto Apply Filter",
-                    tint = androidx.compose.ui.graphics.Color.White,
-                    modifier = Modifier.size(22.dp)
-                )
+                IconButton(
+                    onClick = {
+                        crossConfirmation = true
+                        //   sendToMain(contextForSending, originalBitmap)
+                    },
+                    modifier = Modifier.absolutePadding(top = 5.dp, left = 10.dp)
+                ) {
+                    CrossIcon()
+                }
+
+                IconButton(
+                    onClick = {
+                        tickConfirmation = true;
+                    },
+                    //      sendToMain(contextForSending, filteredBitmap)
+                    //      },
+                    modifier = Modifier.absolutePadding(top = 5.dp, right = 10.dp)
+                ) {
+                    TickIcon()
+                }
+
+                if (tickConfirmation) {
+                    AlertDialog(
+                        onDismissRequest = { tickConfirmation = false },
+                        title = {
+                            Text(text = "Confirmation")
+                        },
+                        text = {
+                            Text(text = "Are you sure you want to save changes?")
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    sendToMain(contextForSending, filteredBitmap)
+                                    tickConfirmation = false
+                                }, colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Black
+                                )
+                            ) {
+                                Text(text = "Yes")
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = { tickConfirmation = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Black
+                                )
+                            ) {
+                                Text(text = "No")
+                            }
+                        }
+                    )
+                }
+
+                if (crossConfirmation) {
+                    AlertDialog(
+                        onDismissRequest = { crossConfirmation = false },
+                        title = {
+                            Text(text = "Confirmation")
+                        },
+                        text = {
+                            Text(text = "Are you sure you want to discard changes?")
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    sendToMain(contextForSending, originalBitmap)
+                                    crossConfirmation = false
+                                }, colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Black
+                                )
+
+                            ) {
+                                Text(text = "Yes")
+                            }
+                        },
+                        dismissButton = {
+
+
+                            Button(
+                                onClick = { crossConfirmation = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Black
+                                )
+                            ) {
+
+                                Text(
+                                    text = "No"
+                                )
+                            }
+                        }
+                    )
+                }
+
+                if (removeFilterConfirmation) {
+                    AlertDialog(
+                        onDismissRequest = { removeFilterConfirmation = false },
+                        title = {
+                            Text(text = "Confirmation")
+                        },
+                        text = {
+                            Text(text = "Are you sure you want to Remove the Filter?")
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    selectedFilter = Filter.None
+                                    removeFilterConfirmation = false
+                                }, colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Black
+                                )
+
+                            ) {
+                                Text(text = "Yes")
+                            }
+                        },
+                        dismissButton = {
+
+
+                            Button(
+                                onClick = { removeFilterConfirmation = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Black
+                                )
+                            ) {
+
+                                Text(
+                                    text = "No"
+                                )
+
+                            }
+
+                        }
+
+
+                    )
+
+                }
+
             }
+
         }
-
-
-        // Horizontal Scrollable Row for Filters
-        Row(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(bottom = 7.dp)
-        ) {
-            FilterItem("None", Filter.None,originalBitmap!!,isSelected=selectedFilter==Filter.None) { selectedFilter = it }
-            FilterItem("Vignette", Filter.Vignette, originalBitmap!!,isSelected=selectedFilter==Filter.Vignette) { selectedFilter = it }
-            FilterItem("Sepia", Filter.Sepia, originalBitmap!!,isSelected=selectedFilter==Filter.Sepia) { selectedFilter = it }
-            FilterItem("Saturate", Filter.Saturate, originalBitmap!!,isSelected=selectedFilter==Filter.Saturate) { selectedFilter = it }
-            FilterItem("Rotate", Filter.Rotate, originalBitmap!!,isSelected=selectedFilter==Filter.Rotate) { selectedFilter = it }
-            FilterItem("Posterize", Filter.Posterize, originalBitmap!!,isSelected=selectedFilter==Filter.Posterize) { selectedFilter = it }
-            FilterItem("Negative", Filter.Negative,originalBitmap!!,isSelected=selectedFilter==Filter.Negative) { selectedFilter = it }
-            FilterItem("Tint", Filter.Tint, originalBitmap!!,isSelected=selectedFilter==Filter.Tint) { selectedFilter = it }
-            FilterItem("Temperature", Filter.Temperature, originalBitmap!!,isSelected=selectedFilter==Filter.Temperature) { selectedFilter = it }
-            FilterItem("Sharpen", Filter.Sharpen, originalBitmap!!,isSelected=selectedFilter==Filter.Sharpen) { selectedFilter = it }
-        }
-        // Bottom Row for Icons
-        Row(
-
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-
-        ) {
-            IconButton(
-                onClick = {
-
-                    sendToMain(contextForSending, originalBitmap)
-                },
-                modifier = Modifier.padding(end = 10.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.icon3),
-                    contentDescription = "Your Icon Left",
-                    tint = androidx.compose.ui.graphics.Color.White,
-                    modifier = Modifier.size(22.dp)// Change the color to white here
-                )
-            }
-
-            IconButton(
-                onClick = {
-                    sendToMain(contextForSending, filteredBitmap)},
-                modifier = Modifier.padding(end = 10.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.icon4),
-                    contentDescription = "Your Icon Right",
-                    tint = androidx.compose.ui.graphics.Color.White,
-                    modifier = Modifier.size(22.dp)// Change the color to white here// Change the color to white here
-                )
-            }
-
-        }
-
     }
 }
+
+
 
 fun sendToMain(context: Context, bitmap: Bitmap?) {
     bitmap?.let {
@@ -269,25 +430,33 @@ fun FilterItem(filterName: String, filter: Filter, originalBitmap: Bitmap,isSele
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .width(150.dp)
-            .padding(3.dp)
+            .absolutePadding(top = 2.dp, left = 7.dp)
+            .width(90.dp)
+            .height(95.dp)
             .clickable { onSelected(filter) }
-            .border(width = 3.dp, color = if (isSelected) androidx.compose.ui.graphics.Color.Yellow else androidx.compose.ui.graphics.Color.Transparent, shape = RoundedCornerShape(8.dp))
+            .border(
+                width = 3.dp,
+                color = if (isSelected) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.Transparent,
+                shape = RoundedCornerShape(15.dp)
+            )
+            .background(Color(android.graphics.Color.parseColor("#281340")), shape = RoundedCornerShape(15.dp))
+
     ) {
         // filter bar images
         Image(
             bitmap = previewBitmap.asImageBitmap(),
             contentDescription = null,
             modifier = Modifier
-                .size(100.dp)
-                .clip(RoundedCornerShape(8.dp)),
+                .size(60.dp),
             contentScale = ContentScale.Crop
         )
         Text(
             text = filterName,
-            color = androidx.compose.ui.graphics.Color.White,
-            modifier = Modifier.padding(4.dp),
-            textAlign = TextAlign.Center
+            color = Color.White,
+            modifier = Modifier.padding(2.dp),
+            textAlign = TextAlign.Center,
+            fontSize = 12.sp,
+            fontFamily = FontFamily(Font(R.font.sansserif))
         )
     }
 }
@@ -312,6 +481,7 @@ enum class Filter {
     Tint,
     Temperature,
     Sharpen,
+    auto
 }
 
 fun applyFilter(bitmap: Bitmap, filter: Filter): Bitmap {
@@ -326,6 +496,7 @@ fun applyFilter(bitmap: Bitmap, filter: Filter): Bitmap {
         Filter.Tint -> applyColorMatrixFilter(bitmap, tintFilter)
         Filter.Temperature -> applyColorMatrixFilter(bitmap, temperatureFilter)
         Filter.Sharpen -> applyColorMatrixFilter(bitmap, sharpenFilter)
+        Filter.auto -> applyColorMatrixFilter(bitmap, posterizeFilter)
     }
 }
 private val negativeFilter: ColorMatrix
@@ -536,7 +707,7 @@ fun calculateBrightness(bitmap: Bitmap): Double {
         for (x in 0 until bitmap.width) {
             val pixel = bitmap.getPixel(x, y)
             val brightness =
-                (0.3 * Color.red(pixel) + 0.59 * Color.green(pixel) + 0.11 * Color.blue(pixel)).toInt()
+                (0.3 * android.graphics.Color.red(pixel) + 0.59 * android.graphics.Color.green(pixel) + 0.11 * android.graphics.Color.blue(pixel)).toInt()
             totalBrightness = totalBrightness +  brightness
         }
     }
@@ -550,7 +721,7 @@ fun calculateContrast(bitmap: Bitmap): Double {
         for (x in 0 until bitmap.width) {
             val pixel = bitmap.getPixel(x, y)
             val brightness =
-                (0.3 * Color.red(pixel) + 0.59 * Color.green(pixel) + 0.11 * Color.blue(pixel)).toInt()
+                (0.3 * android.graphics.Color.red(pixel) + 0.59 * android.graphics.Color.green(pixel) + 0.11 * android.graphics.Color.blue(pixel)).toInt()
             contrastSum += Math.pow(brightness - meanGrayValue, 2.0)
         }
     }
@@ -571,12 +742,12 @@ fun applyGrayscaleFilter(inputBitmap: Bitmap): Bitmap {
     for (y in 0 until inputBitmap.height) {
         for (x in 0 until inputBitmap.width) {
             val pixel = inputBitmap.getPixel(x, y).toInt();
-            val red = (0.3 * Color.red(pixel).toDouble()).toInt()
-            val green = (0.59 * Color.green(pixel).toDouble()).toInt()
-            val blue = (0.11 * Color.blue(pixel).toDouble()).toInt()
+            val red = (0.3 * android.graphics.Color.red(pixel).toDouble()).toInt()
+            val green = (0.59 * android.graphics.Color.green(pixel).toDouble()).toInt()
+            val blue = (0.11 * android.graphics.Color.blue(pixel).toDouble()).toInt()
 
             val gray = red + green + blue
-            outputBitmap.setPixel(x, y, Color.rgb(gray, gray, gray))
+            outputBitmap.setPixel(x, y, android.graphics.Color.rgb(gray, gray, gray))
         }
     }
     return outputBitmap
@@ -590,9 +761,9 @@ private fun increaseSaturation(inputBitmap: Bitmap): Bitmap {
         for (x in 0 until inputBitmap.width) {
             val pixel = inputBitmap.getPixel(x, y)
             val hsv = FloatArray(3)
-            Color.RGBToHSV(Color.red(pixel), Color.green(pixel), Color.blue(pixel), hsv)
+            android.graphics.Color.RGBToHSV(android.graphics.Color.red(pixel), android.graphics.Color.green(pixel), android.graphics.Color.blue(pixel), hsv)
             hsv[1] *= saturationFactor
-            outputBitmap.setPixel(x, y, Color.HSVToColor(hsv))
+            outputBitmap.setPixel(x, y, android.graphics.Color.HSVToColor(hsv))
         }
     }
     return outputBitmap
@@ -606,10 +777,10 @@ private fun applyFilmFilter(inputBitmap: Bitmap): Bitmap {
     for (y in 0 until inputBitmap.height) {
         for (x in 0 until inputBitmap.width) {
             val pixel = inputBitmap.getPixel(x, y)
-            val red = (Color.red(pixel) * brightnessFactor * contrastFactor).toInt()
-            val green = (Color.green(pixel) * brightnessFactor * contrastFactor).toInt()
-            val blue = (Color.blue(pixel) * brightnessFactor * contrastFactor).toInt()
-            outputBitmap.setPixel(x, y, Color.rgb(red.coerceIn(0, 255), green.coerceIn(0, 255), blue.coerceIn(0, 255)))
+            val red = (android.graphics.Color.red(pixel) * brightnessFactor * contrastFactor).toInt()
+            val green = (android.graphics.Color.green(pixel) * brightnessFactor * contrastFactor).toInt()
+            val blue = (android.graphics.Color.blue(pixel) * brightnessFactor * contrastFactor).toInt()
+            outputBitmap.setPixel(x, y, android.graphics.Color.rgb(red.coerceIn(0, 255), green.coerceIn(0, 255), blue.coerceIn(0, 255)))
         }
     }
     return outputBitmap

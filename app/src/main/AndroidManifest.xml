@@ -20,6 +20,16 @@
         android:theme="@style/Theme.ImageEditor"
         tools:targetApi="31">
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <activity
             android:name=".LandingScreen"
             android:theme="@style/Theme.ImageEditor"
@@ -62,8 +72,39 @@
             android:exported="true">
         </activity>
 
+        <activity
+            android:name=".SelectionaAndcropping"
+            android:theme="@style/Theme.ImageEditor"
+            android:exported="true">
+        </activity>
 
+        <activity
+            android:name=".Polygon"
+            android:theme="@style/Theme.ImageEditor"
+            android:exported="true">
+        </activity>
 
+        <activity
+            android:name=".SC_Middle_action"
+            android:theme="@style/Theme.ImageEditor"
+            android:exported="true">
+        </activity>
+
+        <activity
+            android:name=".SC_stickerAndImage"
+            android:theme="@style/Theme.ImageEditor"
+            android:exported="true">
+        </activity>
+
+        <activity
+            android:name=".SC_polygoSelection"
+            android:theme="@style/Theme.ImageEditor"
+            android:exported="true">
+        </activity>
+
+        <activity
+        android:name="com.canhub.cropper.CropImageActivity"
+        android:theme="@style/Base.Theme.AppCompat" />
     </application>
 
 </manifest>

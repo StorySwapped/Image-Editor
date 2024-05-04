@@ -51,6 +51,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import kotlinx.coroutines.CoroutineScope
 import java.io.FileOutputStream
 
@@ -67,7 +69,7 @@ class ChangeForeground : ComponentActivity() {
         Color.Red, Color.Green, Color.Blue, Color.Magenta, Color.Yellow,
         Color.Cyan, Color.White, Color.Gray, Color.DarkGray, Color(0xFFA52A2A),
         Color(0xFF008B8B), Color(0xFFB8860B), Color(0xFF8B4513), Color(0xFF556B2F),
-        Color(0xFF4682B4), Color(0xFFDC143C),  Color(0xFF800080),
+        Color(0xFF4682B4), Color(0xFFDC143C), Color(0xFF800080),
         Color(0xFF2F4F4F), Color(0xFF8B0000), Color(0xFF2E8B57), Color(0xFFD2691E)
     )
 
@@ -85,6 +87,7 @@ class ChangeForeground : ComponentActivity() {
         }
         getImage(imageUri)
     }
+
     private fun getImage(imageUri: Uri) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -111,43 +114,39 @@ class ChangeForeground : ComponentActivity() {
 
     @Composable
     fun Layout() {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-        ) {
+        Box() {
+            Image(
+                painter = painterResource(id = R.drawable.back17), // Replace R.drawable.background_image with your image resource
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
             Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+                modifier = Modifier
+                    .fillMaxSize(),
 
-                Spacer(modifier = Modifier.height(0.dp))
-
-
-
+                ) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp)
-                        .background(Color.Black),
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
                         text = "Foreground Color Changer",
-                        color = Color(android.graphics.Color.parseColor("#F9C706")),
-                        modifier = Modifier.padding(top = 8.dp),
+                        color = Color(android.graphics.Color.parseColor("#D0D0D0")),
+                        modifier = Modifier.padding(top = 8.dp, bottom = 15.dp),
                         textAlign = TextAlign.Center,
-                        fontSize = 25.sp
+                        fontSize = 30.sp,
+                        fontFamily = FontFamily(Font(R.font.sansserif))
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-
 
                 Box(
                     modifier = Modifier
-                        .size(520.dp)
-                        .background(Color.Black),
+                        .height(560.dp)
+                        .fillMaxWidth()
+                        .padding(bottom = 7.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     displayed?.let {
@@ -161,53 +160,32 @@ class ChangeForeground : ComponentActivity() {
                 }
 
 
-                Spacer(modifier = Modifier.height(0.dp))
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black)
-                            .clickable { displayed = initial },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_none),
-                            contentDescription = "Remove Background",
-                            modifier = Modifier.size(22.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-                }
-
-
-                Row(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .horizontalScroll(rememberScrollState())
-                        .background(Color.Black),
+                        .absolutePadding(left = 5.dp, top = 10.dp)
+                        .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.Bottom
 
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(0.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black)
+                            .size(80.dp)
+                            .padding(4.dp)
+                            .background(
+                                color = Color(android.graphics.Color.parseColor("#451D5A")),
+                                shape = RoundedCornerShape(8.dp)
+                            )
                             .clickable { displayed = initial },
                         contentAlignment = Alignment.Center
-                    )
-                    {
-
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_none),
+                            contentDescription = "Remove Background",
+                            modifier = Modifier.size(30.dp),
+                            contentScale = ContentScale.Fit
+                        )
                     }
-
 
                     eachButton(color = android.graphics.Color.RED) { applyColor(it) }
                     eachButton(color = android.graphics.Color.GREEN) { applyColor(it) }
@@ -230,7 +208,7 @@ class ChangeForeground : ComponentActivity() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                        .absolutePadding(left = 10.dp, top = 20.dp, right = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
 
@@ -238,22 +216,17 @@ class ChangeForeground : ComponentActivity() {
                     Box(
                         modifier = Modifier
                             .size(50.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black)
                             .clickable {
                                 crossConfirmation = true
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         CrossIcon()
-
                     }
 
                     Box(
                         modifier = Modifier
                             .size(50.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black)
                             .clickable {
                                 tickConfirmation = true
                             },
@@ -289,7 +262,7 @@ class ChangeForeground : ComponentActivity() {
                     onClick = {
                         sendtoMain(displayed)
                         tickConfirmation = false
-                    },colors = ButtonDefaults.buttonColors(
+                    }, colors = ButtonDefaults.buttonColors(
                         containerColor = androidx.compose.ui.graphics.Color.Black
                     )
                 ) {
@@ -298,7 +271,7 @@ class ChangeForeground : ComponentActivity() {
             },
             dismissButton = {
                 Button(
-                    onClick = { tickConfirmation = false },colors = ButtonDefaults.buttonColors(
+                    onClick = { tickConfirmation = false }, colors = ButtonDefaults.buttonColors(
                         containerColor = androidx.compose.ui.graphics.Color.Black
                     )
                 ) {
@@ -311,7 +284,7 @@ class ChangeForeground : ComponentActivity() {
     @Composable
     fun showBoxCross() {
         AlertDialog(
-            onDismissRequest = { crossConfirmation= false },
+            onDismissRequest = { crossConfirmation = false },
             title = {
                 Text(text = "Confirmation")
             },
@@ -323,7 +296,7 @@ class ChangeForeground : ComponentActivity() {
                     onClick = {
                         sendtoMain(initial)
                         crossConfirmation = false
-                    },colors = ButtonDefaults.buttonColors(
+                    }, colors = ButtonDefaults.buttonColors(
                         containerColor = androidx.compose.ui.graphics.Color.Black
                     )
 
@@ -342,12 +315,12 @@ class ChangeForeground : ComponentActivity() {
                 ) {
 
                     Text(
-                        text = "No")
+                        text = "No"
+                    )
 
                 }
 
             }
-
 
 
         )
@@ -386,6 +359,7 @@ class ChangeForeground : ComponentActivity() {
 
         finimg = newBitmap
     }
+
     private fun applyColor(color: Color) {
         finimg?.let { bitmap ->
             changeForegroundColor(bitmap, color)
@@ -394,11 +368,21 @@ class ChangeForeground : ComponentActivity() {
             val scaleY = original!!.height.toFloat() / finimg!!.height.toFloat()
             if (scaleX < 1 || scaleY < 1) {
                 val scale = minOf(scaleX, scaleY)
-                finimg = Bitmap.createScaledBitmap(finimg!!, (finimg!!.width * scale).toInt(), (finimg!!.height * scale).toInt(), true)
+                finimg = Bitmap.createScaledBitmap(
+                    finimg!!,
+                    (finimg!!.width * scale).toInt(),
+                    (finimg!!.height * scale).toInt(),
+                    true
+                )
             } else {
                 val scaleX = original!!.width.toFloat() / finimg!!.width.toFloat()
                 val scaleY = original!!.height.toFloat() / finimg!!.height.toFloat()
-                finimg = Bitmap.createScaledBitmap(finimg!!, (finimg!!.width * scaleX).toInt(), (finimg!!.height * scaleY).toInt(), true)
+                finimg = Bitmap.createScaledBitmap(
+                    finimg!!,
+                    (finimg!!.width * scaleX).toInt(),
+                    (finimg!!.height * scaleY).toInt(),
+                    true
+                )
             }
             combineImages()
         }
@@ -432,6 +416,7 @@ class ChangeForeground : ComponentActivity() {
         displayed = newBitmap
     }
 
+
     private fun detectBackground() {
         original?.let { bitmap ->
             val temp = File.createTempFile("temp", ".jpeg", cacheDir)
@@ -443,7 +428,19 @@ class ChangeForeground : ComponentActivity() {
                     val newBitmap = BitmapFactory.decodeByteArray(removed, 0, removed.size)
                     withContext(Dispatchers.Main) {
                         finimg=newBitmap
-                        displayed = newBitmap
+
+                        val scaleX = original!!.width.toFloat() / finimg!!.width.toFloat()
+                        val scaleY = original!!.height.toFloat() / finimg!!.height.toFloat()
+                        if (scaleX < 1 || scaleY < 1) {
+                            val scale = minOf(scaleX, scaleY)
+                            finimg = Bitmap.createScaledBitmap(finimg!!, (finimg!!.width * scale).toInt(), (finimg!!.height * scale).toInt(), true)
+                        } else {
+                            val scaleX = original!!.width.toFloat() / finimg!!.width.toFloat()
+                            val scaleY = original!!.height.toFloat() / finimg!!.height.toFloat()
+                            finimg = Bitmap.createScaledBitmap(finimg!!, (finimg!!.width * scaleX).toInt(), (finimg!!.height * scaleY).toInt(), true)
+                        }
+                        combineImages()
+                        //displayed = newBitmap
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -464,13 +461,18 @@ class ChangeForeground : ComponentActivity() {
 
 
     private suspend fun removeBackgroundAPI(file: File): ByteArray {
-        val apiKey = "VonrhxHEBhJBeBg8bi786rCR"
+        val apiKey = "21p2Sp9LkaGAgL1rBhw3ZHFc"
         val client = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .build()
-        val body = MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart("image_file", "image.jpg", RequestBody.create("image/jpeg".toMediaType(), file)).build()
-        val request = Request.Builder().url("https://api.remove.bg/v1.0/removebg").addHeader("X-Api-Key", apiKey).post(body).build()
+        val body = MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart(
+            "image_file",
+            "image.jpg",
+            RequestBody.create("image/jpeg".toMediaType(), file)
+        ).build()
+        val request = Request.Builder().url("https://api.remove.bg/v1.0/removebg")
+            .addHeader("X-Api-Key", apiKey).post(body).build()
 
         val response = client.newCall(request).execute()
         if (!response.isSuccessful) {
@@ -480,16 +482,15 @@ class ChangeForeground : ComponentActivity() {
 
 
         if (type?.startsWith("application/json") == true) {
-            val json = JSONObject(response.body?.string()?: "")
+            val json = JSONObject(response.body?.string() ?: "")
             val image = json.getJSONObject("data").getString("result")
             return URL(image).readBytes()
-        } else if (type?.startsWith("image/png") == true || type?.startsWith("image/jpeg")==true)  {
-            return response.body?.bytes()?: throw Exception("Empty")
+        } else if (type?.startsWith("image/png") == true || type?.startsWith("image/jpeg") == true) {
+            return response.body?.bytes() ?: throw Exception("Empty")
         } else {
             throw Exception("Unexpected response type: $type")
         }
     }
-
 
 
     private fun saveImage() {
@@ -541,6 +542,7 @@ class ChangeForeground : ComponentActivity() {
 
 
 }
+
 
 
 

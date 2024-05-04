@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color.TRANSPARENT
 import android.graphics.Matrix
 import android.net.Uri
 import android.os.Bundle
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -104,8 +106,14 @@ class ChangeBackground : ComponentActivity() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
         ) {
+            Image(
+                painter = painterResource(id = R.drawable.back17), // Replace R.drawable.background_image with your image resource
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Top,
@@ -116,17 +124,15 @@ class ChangeBackground : ComponentActivity() {
 
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp)
-                        .background(Color.Black),
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
                         text = "Background Color Changer",
-                        color = Color(android.graphics.Color.parseColor("#F9C706")),
-                        modifier = Modifier.padding(top = 8.dp),
+                        color = Color(android.graphics.Color.parseColor("#D0D0D0")),
+                        modifier = Modifier.padding(top = 8.dp, bottom = 15.dp),
                         textAlign = TextAlign.Center,
-                        fontSize = 25.sp,
+                        fontSize = 30.sp,
                         fontFamily = FontFamily(Font(R.font.sansserif))
                     )
                 }
@@ -134,7 +140,7 @@ class ChangeBackground : ComponentActivity() {
 
                 Box(
                     modifier = Modifier
-                        .size(520.dp)
+                        .size(550.dp)
                         .background(Color.Black),
                     contentAlignment = Alignment.Center
                 ) {
@@ -148,54 +154,6 @@ class ChangeBackground : ComponentActivity() {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black)
-                            .clickable { displayed = initial },
-                        contentAlignment = Alignment.Center
-                    )
-                    {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_none),
-                            contentDescription = "Remove Background",
-                            modifier = Modifier.size(22.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-
-
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black)
-                            .clickable {
-                                hex_popup = true
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_addv),
-                            contentDescription = "Add Value",
-                            modifier = Modifier.size(22.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-
-                }
-
                 Row(
                     modifier = Modifier
                         .padding(4.dp)
@@ -207,17 +165,57 @@ class ChangeBackground : ComponentActivity() {
                 ) {
                     Box(
                         modifier = Modifier
-                            .padding(horizontal = 4.dp)
-                            .size(75.dp)
-                            .background(color = Color.LightGray, shape = RoundedCornerShape(8.dp))
+                            .absolutePadding(left = 4.dp, right = 4.dp, top = 20.dp)
+                            .size(70.dp)
+                            .background(
+                                color = Color(android.graphics.Color.parseColor("#451D5A")),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .border(width = 3.dp, color = if (selectedColor == android.graphics.Color.TRANSPARENT) Color.White else Color.Transparent, shape = RoundedCornerShape(8.dp))
+                            .clickable {
+                                selectedColor = TRANSPARENT
+                                displayed = initial },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_none),
+                            contentDescription = "Remove Background",
+                            
+                            modifier = Modifier.size(30.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .absolutePadding(left = 4.dp, right = 4.dp, top = 4.dp)
+                            .size(70.dp)
+                            .background(
+                                color = Color.DarkGray,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .clickable { displayed = initial },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_addv),
+                            contentDescription = "Add Value",
+                            modifier = Modifier.size(30.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .absolutePadding(left = 4.dp, right = 4.dp, top = 4.dp)
+                            .size(70.dp)
+                            .background(Color(android.graphics.Color.parseColor("#002D7A")), shape = RoundedCornerShape(8.dp))
                             .clickable { onUploadImageClick() },
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_add),
+                            painter = painterResource(id = R.drawable.add_photo),
                             contentDescription = "Upload Image",
                             modifier = Modifier.size(36.dp),
-                            contentScale = ContentScale.Fit
+                            contentScale = ContentScale.Fit,
                         )
                     }
 
@@ -260,7 +258,7 @@ class ChangeBackground : ComponentActivity() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                        .absolutePadding(left = 10.dp, top = 20.dp, right = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
 
@@ -276,7 +274,6 @@ class ChangeBackground : ComponentActivity() {
                         contentAlignment = Alignment.Center
                     ) {
                         CrossIcon()
-
                     }
 
                     Box(
@@ -417,19 +414,12 @@ class ChangeBackground : ComponentActivity() {
                 Button(
                     onClick = { crossConfirmation = false },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = androidx.compose.ui.graphics.Color.Black
+                        containerColor = Color.Black
                     )
                 ) {
-
-                    Text(
-                        text = "No")
-
+                    Text( text = "No")
                 }
-
             }
-
-
-
         )
     }
 
@@ -453,13 +443,14 @@ class ChangeBackground : ComponentActivity() {
     fun eachButton(color: Int, isSelected: Boolean, onClick: (Int) -> Unit) {
         Box(
             modifier = Modifier
-                .padding(horizontal = 4.dp)
-                .size(75.dp)
+                .absolutePadding(left = 4.dp, right = 4.dp, top = 4.dp)
+                .size(70.dp)
                 .background(color = Color(color), shape = RoundedCornerShape(8.dp))
-                .border(width = 5.dp, color = if (isSelected) Color.Yellow else Color.Transparent, shape = RoundedCornerShape(8.dp))
+                .border(width = 3.dp, color = if (isSelected) Color.White else Color.Transparent, shape = RoundedCornerShape(8.dp))
                 .clickable { onClick(color) },
             contentAlignment = Alignment.Center
         ) {
+
         }
     }
 
@@ -611,7 +602,7 @@ class ChangeBackground : ComponentActivity() {
 
 
     private fun removeBackgroundAPI(file: File): ByteArray {
-        val apiKey = "xNxmsa52YfVFfYr8i1YQPd9k"
+        val apiKey = "21p2Sp9LkaGAgL1rBhw3ZHFc"
         val client = OkHttpClient()
         val body = MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart("image_file", "image.jpg", RequestBody.create("image/jpeg".toMediaType(), file)).build()
         val request = Request.Builder().url("https://api.remove.bg/v1.0/removebg").addHeader("X-Api-Key", apiKey).post(body).build()
@@ -637,18 +628,18 @@ class ChangeBackground : ComponentActivity() {
 }
 @Composable
 fun CrossIcon() {
-    Canvas(modifier = Modifier.size(14.dp)) {
+    Canvas(modifier = Modifier.size(17.dp)) {
         drawLine(
             color = Color.White,
             start = Offset(0f, 0f),
             end = Offset(size.width, size.height),
-            strokeWidth = 3f
+            strokeWidth = 6.5f
         )
         drawLine(
             color = Color.White,
             start = Offset(0f, size.height),
             end = Offset(size.width, 0f),
-            strokeWidth = 3f
+            strokeWidth = 6.5f
         )
     }
 }
@@ -656,13 +647,14 @@ fun CrossIcon() {
 fun TickIcon(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .size(25.dp),
+            .size(50.dp),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Default.Check,
             contentDescription = "Tick",
-            tint = Color.White
+            tint = Color.White,
+            modifier = Modifier.size(30.dp)
         )
     }
 }
