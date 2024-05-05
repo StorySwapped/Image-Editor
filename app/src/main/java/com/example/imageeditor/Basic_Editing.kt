@@ -67,7 +67,9 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.cos
 import kotlin.math.sin
-
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderColors
+import androidx.compose.material3.SliderDefaults
 
 class BasicEditing : ComponentActivity() {
     private var initial by mutableStateOf<Bitmap?>(null)
@@ -122,6 +124,7 @@ class BasicEditing : ComponentActivity() {
             }
         }
     }
+
     @Composable
     fun Layout() {
         Box(
@@ -146,9 +149,9 @@ class BasicEditing : ComponentActivity() {
             }
         }
     }
+
     @Composable
-    fun Title()
-    {
+    fun Title() {
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -166,7 +169,7 @@ class BasicEditing : ComponentActivity() {
     }
 
     @Composable
-    fun ImagePreview(){
+    fun ImagePreview() {
         Box(
             modifier = Modifier
                 .size(520.dp)
@@ -186,6 +189,9 @@ class BasicEditing : ComponentActivity() {
 
     @Composable
     fun EditingOptions() {
+        var currentEditFeature by remember { mutableStateOf("brightness") } // Track the current editing feature
+        var sliderValue by remember { mutableStateOf(1f) } // The value to adjust, tied to the current editing feature
+
         var brightness by remember { mutableStateOf(1f) }
         var contrast by remember { mutableStateOf(1f) }
         var hue by remember { mutableStateOf(0f) }
@@ -193,11 +199,17 @@ class BasicEditing : ComponentActivity() {
         var sharpness by remember { mutableStateOf(0f) }
         var shadows by remember { mutableStateOf(0f) }
 
-        var temp = brightness
-
         val originalBitmap = original ?: return
 
-        LaunchedEffect(brightness, contrast, hue, saturation, sharpness, shadows) {
+        LaunchedEffect(currentEditFeature, sliderValue) {
+            when (currentEditFeature) {
+                "brightness" -> brightness = sliderValue
+                "hue" -> hue = sliderValue
+                "contrast" -> contrast = sliderValue
+                "saturation" -> saturation = sliderValue
+                "sharpness" -> sharpness = sliderValue
+                "shadows" -> shadows = sliderValue
+            }
             displayed = applyEdits(
                 originalBitmap.asAndroidBitmap(),
                 brightness,
@@ -222,43 +234,84 @@ class BasicEditing : ComponentActivity() {
                     .fillMaxWidth()
                     .padding(bottom = 4.dp),
 
-            ) {
-
+                ) {
                 EditingFeatureSlider(
-                    value = temp,
+                    value = sliderValue,
                     onValueChange = {
-                        temp = it
+                        sliderValue = it
                     }
                 )
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                Row(
                     modifier = Modifier
-                        .absolutePadding(top = 2.dp, left = 7.dp)
-                        .width(90.dp)
-                        .height(95.dp)
-                        .clickable {
-                            temp = hue
-                        }
-                        .background(Color(android.graphics.Color.parseColor("#281340")), shape = RoundedCornerShape(15.dp))
-
-                ) {
-                    // filter bar images
-                    Image(
-                        painter = painterResource(id = R.drawable.hue),
-                        contentDescription = "hue",
-                        modifier = Modifier.size(35.dp)
+                        .horizontalScroll(scrollState)
+                        .fillMaxWidth()
+                        .absolutePadding(top = 5.dp, bottom = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                )
+                {
+                    EditOption(
+                        iconId = R.drawable.brightness,
+                        name = "BRIGHTNESS",
+                        onClick = {
+                            currentEditFeature = "brightness"
+                            sliderValue = brightness
+                        },
+                        isSelected = currentEditFeature == "brightness"
                     )
-                    option("Hue")
+                    EditOption(
+                        iconId = R.drawable.contrast,
+                        name = "CONTRAST",
+                        onClick = {
+                            currentEditFeature = "contrast"
+                            sliderValue = contrast
+                        },
+                        isSelected = currentEditFeature == "contrast"
+                    )
+                    EditOption(
+                        iconId = R.drawable.hue,
+                        name = "HUE",
+                        onClick = {
+                            currentEditFeature = "hue"
+                            sliderValue = hue
+                        },
+                        isSelected = currentEditFeature == "hue"
+                    )
+                    EditOption(
+                        iconId = R.drawable.saturation,
+                        name = "SATURATION",
+                        onClick = {
+                            currentEditFeature = "saturation"
+                            sliderValue = saturation
+                        },
+                        isSelected = currentEditFeature == "saturation"
+                    )
+                    EditOption(
+                        iconId = R.drawable.sharpness,
+                        name = "SHARPNESS",
+                        onClick = {
+                            currentEditFeature = "sharpness"
+                            sliderValue = sharpness
+                        },
+                        isSelected = currentEditFeature == "sharpness"
+                    )
+                    EditOption(
+                        iconId = R.drawable.shadows,
+                        name = "SHADOWS",
+                        onClick = {
+                            currentEditFeature = "shadows"
+                            sliderValue = shadows
+                        },
+                        isSelected = currentEditFeature == "shadows"
+                    )
                 }
             }
         }
     }
 
 
-
     @Composable
-    fun TickCross(){
+    fun TickCross() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -295,11 +348,11 @@ class BasicEditing : ComponentActivity() {
             }
         }
 
-        if(tickConfirmation){
+        if (tickConfirmation) {
             showBoxTick()
         }
 
-        if(crossConfirmation){
+        if (crossConfirmation) {
             showBoxCross()
         }
     }
@@ -319,7 +372,7 @@ class BasicEditing : ComponentActivity() {
                     onClick = {
                         sendtoMain(displayed?.asAndroidBitmap())
                         tickConfirmation = false
-                    },colors = ButtonDefaults.buttonColors(
+                    }, colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Black
                     )
                 ) {
@@ -328,7 +381,7 @@ class BasicEditing : ComponentActivity() {
             },
             dismissButton = {
                 Button(
-                    onClick = { tickConfirmation = false },colors = ButtonDefaults.buttonColors(
+                    onClick = { tickConfirmation = false }, colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Black
                     )
                 ) {
@@ -341,7 +394,7 @@ class BasicEditing : ComponentActivity() {
     @Composable
     fun showBoxCross() {
         AlertDialog(
-            onDismissRequest = { crossConfirmation= false },
+            onDismissRequest = { crossConfirmation = false },
             title = {
                 Text(text = "Confirmation")
             },
@@ -353,7 +406,7 @@ class BasicEditing : ComponentActivity() {
                     onClick = {
                         sendtoMain(initial)
                         crossConfirmation = false
-                    },colors = ButtonDefaults.buttonColors(
+                    }, colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Black
                     )
 
@@ -368,7 +421,7 @@ class BasicEditing : ComponentActivity() {
                         containerColor = Color.Black
                     )
                 ) {
-                    Text( text = "No")
+                    Text(text = "No")
                 }
             }
         )
@@ -384,17 +437,39 @@ class BasicEditing : ComponentActivity() {
     }
 
     @Composable
-    fun option(name: String)
-    {
-
-        Text(
-            text = name,
-            color = Color.White,
-            modifier = Modifier.padding(2.dp),
-            textAlign = TextAlign.Center,
-            fontSize = 12.sp,
-            fontFamily = FontFamily(Font(R.font.sansserif))
-        )
+    fun EditOption(iconId: Int, name: String, onClick: () -> Unit, isSelected: Boolean) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .padding(horizontal = 4.dp)
+                .width(80.dp)
+                .height(80.dp)
+                .clickable(onClick = onClick)
+                .background(
+                    Color(android.graphics.Color.parseColor("#281340")),
+                    shape = RoundedCornerShape(15.dp)
+                )
+                .border(
+                    width = 2.dp,
+                    color = if (isSelected) Color.White else Color.Transparent,
+                    shape = RoundedCornerShape(15.dp))
+        ) {
+            Image(
+                painter = painterResource(id = iconId),
+                contentDescription = name,
+                modifier = Modifier
+                    .size(50.dp)
+                    .padding(top = 10.dp),
+            )
+            Text(
+                text = name,
+                color = Color.White,
+                modifier = Modifier.padding(top = 4.dp),
+                textAlign = TextAlign.Center,
+                fontSize = 11.sp,
+                fontFamily = FontFamily(Font(R.font.sansserif))
+            )
+        }
     }
 
     private fun sendtoMain(bitmap: Bitmap?) {
@@ -413,7 +488,13 @@ class BasicEditing : ComponentActivity() {
     fun EditingFeatureSlider(
         value: Float,
         onValueChange: (Float) -> Unit,
-        range: ClosedFloatingPointRange<Float> = 0f..2f // Default range
+        colors: SliderColors = SliderDefaults.colors(
+            thumbColor = Color(android.graphics.Color.parseColor("#009900")),
+            activeTrackColor = Color(android.graphics.Color.parseColor("#009900")),
+            inactiveTrackColor = Color.DarkGray
+        ),
+        range: ClosedFloatingPointRange<Float> = 0.1f..2f,// Default range
+
     ) {
         Slider(
             value = value,
@@ -495,12 +576,14 @@ class BasicEditing : ComponentActivity() {
         val matrix = ColorMatrix()
 
 
-        matrix.set(floatArrayOf(
-            contrast, 0f, 0f, 0f, 0f,
-            0f, contrast, 0f, 0f, 0f,
-            0f, 0f, contrast, 0f, 0f,
-            0f, 0f, 0f, 1f, 0f
-        ))
+        matrix.set(
+            floatArrayOf(
+                contrast, 0f, 0f, 0f, 0f,
+                0f, contrast, 0f, 0f, 0f,
+                0f, 0f, contrast, 0f, 0f,
+                0f, 0f, 0f, 1f, 0f
+            )
+        )
 
         val paint = Paint().apply {
             colorFilter = ColorMatrixColorFilter(matrix)
@@ -520,13 +603,35 @@ class BasicEditing : ComponentActivity() {
         val lumG = 0.715f
         val lumB = 0.072f
 
-        matrix.set(floatArrayOf(
-            lumR + cos * (1 - lumR) + sin * (-lumR), lumG + cos * (-lumG) + sin * (-lumG), lumB + cos * (-lumB) + sin * (1 - lumB), 0f, 0f,
-            lumR + cos * (-lumR) + sin * (0.143f), lumG + cos * (1 - lumG) + sin * (0.140f), lumB + cos * (-lumB) + sin * (-0.283f), 0f, 0f,
-            lumR + cos * (-lumR) + sin * (-(1 - lumR)), lumG + cos * (-lumG) + sin * (lumG), lumB + cos * (1 - lumB) + sin * (lumB), 0f, 0f,
-            0f, 0f, 0f, 1f, 0f,
-            0f, 0f, 0f, 0f, 1f
-        ))
+        matrix.set(
+            floatArrayOf(
+                lumR + cos * (1 - lumR) + sin * (-lumR),
+                lumG + cos * (-lumG) + sin * (-lumG),
+                lumB + cos * (-lumB) + sin * (1 - lumB),
+                0f,
+                0f,
+                lumR + cos * (-lumR) + sin * (0.143f),
+                lumG + cos * (1 - lumG) + sin * (0.140f),
+                lumB + cos * (-lumB) + sin * (-0.283f),
+                0f,
+                0f,
+                lumR + cos * (-lumR) + sin * (-(1 - lumR)),
+                lumG + cos * (-lumG) + sin * (lumG),
+                lumB + cos * (1 - lumB) + sin * (lumB),
+                0f,
+                0f,
+                0f,
+                0f,
+                0f,
+                1f,
+                0f,
+                0f,
+                0f,
+                0f,
+                0f,
+                1f
+            )
+        )
 
         val paint = Paint().apply {
             colorFilter = ColorMatrixColorFilter(matrix)
@@ -547,13 +652,15 @@ class BasicEditing : ComponentActivity() {
         val sg = (1 - saturation) * lumG
         val sb = (1 - saturation) * lumB
 
-        matrix.set(floatArrayOf(
-            sr + saturation, sg, sb, 0f, 0f,
-            sr, sg + saturation, sb, 0f, 0f,
-            sr, sg, sb + saturation, 0f, 0f,
-            0f, 0f, 0f, 1f, 0f,
-            0f, 0f, 0f, 0f, 1f
-        ))
+        matrix.set(
+            floatArrayOf(
+                sr + saturation, sg, sb, 0f, 0f,
+                sr, sg + saturation, sb, 0f, 0f,
+                sr, sg, sb + saturation, 0f, 0f,
+                0f, 0f, 0f, 1f, 0f,
+                0f, 0f, 0f, 0f, 1f
+            )
+        )
 
         val paint = Paint().apply {
             colorFilter = ColorMatrixColorFilter(matrix)
@@ -595,9 +702,15 @@ class BasicEditing : ComponentActivity() {
                 }
 
                 // Ensure RGB values are within valid range
-                val newR = (android.graphics.Color.red(pixels[y * width + x]) + sharpness * sumR).toInt().coerceIn(0, 255)
-                val newG = (android.graphics.Color.green(pixels[y * width + x]) + sharpness * sumG).toInt().coerceIn(0, 255)
-                val newB = (android.graphics.Color.blue(pixels[y * width + x]) + sharpness * sumB).toInt().coerceIn(0, 255)
+                val newR =
+                    (android.graphics.Color.red(pixels[y * width + x]) + sharpness * sumR).toInt()
+                        .coerceIn(0, 255)
+                val newG =
+                    (android.graphics.Color.green(pixels[y * width + x]) + sharpness * sumG).toInt()
+                        .coerceIn(0, 255)
+                val newB =
+                    (android.graphics.Color.blue(pixels[y * width + x]) + sharpness * sumB).toInt()
+                        .coerceIn(0, 255)
 
                 // Set the new pixel color
                 pixels[y * width + x] = android.graphics.Color.rgb(newR, newG, newB)
@@ -636,7 +749,12 @@ class BasicEditing : ComponentActivity() {
             val adjustedBlue = (blue * (1 - scaledShadows * luminance)).toInt().coerceIn(0, 255)
 
             // Combine adjusted RGB components back into a color
-            val adjustedColor = android.graphics.Color.argb(android.graphics.Color.alpha(color), adjustedRed, adjustedGreen, adjustedBlue)
+            val adjustedColor = android.graphics.Color.argb(
+                android.graphics.Color.alpha(color),
+                adjustedRed,
+                adjustedGreen,
+                adjustedBlue
+            )
             pixels[i] = adjustedColor
         }
 

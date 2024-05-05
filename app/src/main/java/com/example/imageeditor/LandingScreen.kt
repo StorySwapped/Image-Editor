@@ -339,7 +339,7 @@ fun EditingOptions(viewModel: ImageViewModel) {
                 contentDescription = "Basic Editing",
                 tint = Color(parseColor("#dddddd")),
                 modifier = Modifier
-                    .size(50.dp)  // Set the size of the Icon
+                    .size(40.dp)  // Set the size of the Icon
             )
         }
 
