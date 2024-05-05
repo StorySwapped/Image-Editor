@@ -130,7 +130,7 @@ fun HeaderSection(viewModel: ImageViewModel) {
     {
         Row(
             modifier = Modifier
-                .absolutePadding(bottom = 25.dp, left = 30.dp, right = 30.dp, top = 25.dp)
+                .absolutePadding(bottom = 25.dp, left = 30.dp, right = 30.dp, top = 10.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -223,7 +223,7 @@ fun ImagePreviewSection(viewModel: ImageViewModel) {
     Box() {
         Box(
             modifier = Modifier
-                .size(540.dp),
+                .size(570.dp),
             contentAlignment = Alignment.Center
         ) {
             imageBitmap?.let {

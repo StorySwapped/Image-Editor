@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -39,7 +38,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,7 +90,7 @@ class BasicEditing : ComponentActivity() {
             ImageEditorTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color(android.graphics.Color.parseColor("#653355")),
+                    color = Color.Black
 
                 ) {
                     Layout()
@@ -113,6 +111,7 @@ class BasicEditing : ComponentActivity() {
                     original = bitmap.asImageBitmap()
                     displayed = bitmap.asImageBitmap()
                     initial = bitmap
+                    println("Calling detectBackground()")
                 }
 
                 inputStream?.close()
@@ -139,13 +138,13 @@ class BasicEditing : ComponentActivity() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 5.dp),
+                .padding(top = 10.dp, bottom = 8.dp)
+                .background(Color.Black),
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
                 text = "Basic Editing",
-                color = Color(android.graphics.Color.parseColor("#e9e9e9")),
-                modifier = Modifier.padding(top = 8.dp, bottom = 15.dp),
+                color = Color(android.graphics.Color.parseColor("#F9C706")),
                 textAlign = TextAlign.Center,
                 fontSize = 25.sp,
                 fontFamily = FontFamily(Font(R.font.sansserif))
@@ -158,7 +157,7 @@ class BasicEditing : ComponentActivity() {
         Box(
             modifier = Modifier
                 .size(520.dp)
-                .background(Color(android.graphics.Color.parseColor("#8c6d8c"))),
+                .background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
             displayed?.let {
@@ -180,7 +179,6 @@ class BasicEditing : ComponentActivity() {
         var saturation by remember { mutableStateOf(1f) }
         var sharpness by remember { mutableStateOf(0f) }
         var shadows by remember { mutableStateOf(0f) }
-        var temp by remember { mutableStateOf(0f) }
 
         val originalBitmap = original ?: return
 
@@ -200,95 +198,118 @@ class BasicEditing : ComponentActivity() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
-                .absolutePadding(top = 12.dp, left = 5.dp, right = 10.dp, bottom =10.dp)
-
+                .height(170.dp)
+                .absolutePadding(top = 15.dp, left = 16.dp, right = 16.dp)
+                .verticalScroll(scrollState)
         ) {
-            EditingFeatureSlider(
-                value = temp,
-                onValueChange = { brightness = it }
-            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(scrollState),
+                    .padding(bottom = 4.dp),
                 horizontalArrangement = Arrangement.Absolute.Left
 
             ) {
+                //Image(
+                //    painter = painterResource(R.drawable.brightness),
+                //    contentDescription = null,
+                //    modifier = Modifier
+                //        .size(70.dp),
+                //)
+                Text(
+                    text = "Brightness:  ",
+                    style = TextStyle(fontSize = 18.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    value = brightness,
+                    onValueChange = { brightness = it }
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
+
+                ) {
+                Text(
+                    text = "Contrast:     ",
+                    style = TextStyle(fontSize = 18.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    value = contrast,
+                    onValueChange = { contrast = it }
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
+
+                ) {
+                Text(
+                    text = "Hue:              ",
+                    style = TextStyle(fontSize = 18.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    value = hue,
+                    onValueChange = { hue = it }
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
+
+                ) {
+                Text(
+                    text = "Saturation:  ",
+                    style = TextStyle(fontSize = 18.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    value = saturation,
+                    onValueChange = { saturation = it }
+                )
+            }
 
 
-                TextButton(
-                    onClick = { },
-                    modifier = Modifier
-                        .width(80.dp)
-                        .height(30.dp)
-                        .background(Color(android.graphics.Color.parseColor("#A06363")), shape = RoundedCornerShape(15.dp))
-                ) {
-                    Text(
-                        text = "Contrast:     ",
-                        style = TextStyle(fontSize = 15.sp),
-                        color = Color(android.graphics.Color.parseColor("#dddddd")),
-                        fontFamily = FontFamily(Font(R.font.sansserif))
-                    )
-                }
-                TextButton(
-                    onClick = { },
-                    modifier = Modifier
-                        .width(80.dp)
-                        .height(30.dp)
-                        .background(Color(android.graphics.Color.parseColor("#A06363")), shape = RoundedCornerShape(15.dp))
-                ) {
-                    Text(
-                        text = "Hue:              ",
-                        style = TextStyle(fontSize = 15.sp),
-                        color = Color(android.graphics.Color.parseColor("#dddddd")),
-                        fontFamily = FontFamily(Font(R.font.sansserif))
-                    )
-                }
-                TextButton(
-                    onClick = { },
-                    modifier = Modifier
-                        .width(80.dp)
-                        .height(30.dp)
-                        .background(Color(android.graphics.Color.parseColor("#A06363")), shape = RoundedCornerShape(15.dp))
-                ) {
-                    Text(
-                        text = "Saturation:  ",
-                        style = TextStyle(fontSize = 15.sp),
-                        color = Color(android.graphics.Color.parseColor("#dddddd")),
-                        fontFamily = FontFamily(Font(R.font.sansserif))
-                    )
-                }
-                TextButton(
-                    onClick = { },
-                    modifier = Modifier
-                        .width(80.dp)
-                        .height(30.dp)
-                        .background(Color(android.graphics.Color.parseColor("#A06363")), shape = RoundedCornerShape(15.dp))
-                ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
 
-                    Text(
-                        text = "Sharpness:   ",
-                        style = TextStyle(fontSize = 15.sp),
-                        color = Color(android.graphics.Color.parseColor("#dddddd")),
-                        fontFamily = FontFamily(Font(R.font.sansserif))
-                    )
-                }
-                TextButton(
-                    onClick = { },
-                    modifier = Modifier
-                        .width(80.dp)
-                        .height(30.dp)
-                        .background(Color(android.graphics.Color.parseColor("#A06363")), shape = RoundedCornerShape(15.dp))
                 ) {
+                Text(
+                    text = "Sharpness:   ",
+                    style = TextStyle(fontSize = 18.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    value = sharpness,
+                    onValueChange = { sharpness = it }
+                )
+            }
 
-                    Text(
-                        text = "Shadows:     ",
-                        style = TextStyle(fontSize = 15.sp),
-                        color = Color(android.graphics.Color.parseColor("#dddddd")),
-                        fontFamily = FontFamily(Font(R.font.sansserif))
-                    )
-                }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
+
+                ) {
+                Text(
+                    text = "Shadows:     ",
+                    style = TextStyle(fontSize = 18.sp),
+                    color = Color(android.graphics.Color.parseColor("#F9C706")),
+                )
+                EditingFeatureSlider(
+                    value = shadows,
+                    onValueChange = { shadows = it }
+                )
             }
         }
     }
@@ -300,7 +321,7 @@ class BasicEditing : ComponentActivity() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .absolutePadding(left = 10.dp, right = 10.dp),
+                .padding(horizontal = 16.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
 
@@ -308,6 +329,8 @@ class BasicEditing : ComponentActivity() {
             Box(
                 modifier = Modifier
                     .size(50.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black)
                     .clickable {
                         crossConfirmation = true
                     },
@@ -320,6 +343,8 @@ class BasicEditing : ComponentActivity() {
             Box(
                 modifier = Modifier
                     .size(50.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black)
                     .clickable {
                         tickConfirmation = true
                     },
@@ -433,7 +458,7 @@ class BasicEditing : ComponentActivity() {
     fun EditingFeatureSlider(
         value: Float,
         onValueChange: (Float) -> Unit,
-        range: ClosedFloatingPointRange<Float> = 0.1f..2f // Default range
+        range: ClosedFloatingPointRange<Float> = 0f..2f // Default range
     ) {
         Slider(
             value = value,
@@ -442,6 +467,31 @@ class BasicEditing : ComponentActivity() {
             steps = 1000,
         )
 
+    }
+    fun saveEditedImage(
+        context: Context,
+        brightness: Float,
+        contrast: Float,
+        hue: Float,
+        saturation: Float,
+        sharpness: Float,
+        shadows: Float
+    ) {
+        val editedBitmap = displayed?.asAndroidBitmap() ?: return
+        val editedImageUri = saveBitmap(context, editedBitmap)
+
+        // You can use editedImageUri to do further operations like sharing or displaying the edited image
+        // For example:
+        val intent = Intent().apply {
+            action = Intent.ACTION_VIEW
+            data = editedImageUri
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        }
+        context.startActivity(intent)
+
+        // Once saved, you can navigate back to the previous screen if needed
+        // For example:
+        // (context as Activity).onBackPressed()
     }
 
     private fun saveBitmap(context: Context, bitmap: Bitmap): Uri {
@@ -468,16 +518,22 @@ class BasicEditing : ComponentActivity() {
     ): Bitmap {
         val editedBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true)
 
+        // Apply brightness adjustment
         editedBitmap.applyBrightness(brightness)
 
+        // Apply contrast adjustment
         editedBitmap.applyContrast(contrast)
 
+        // Apply hue adjustment
         editedBitmap.applyHue(hue)
 
+        // Apply saturation
         editedBitmap.applySaturation(saturation)
 
+        // Apply sharpen adjustment
         editedBitmap.applySharpness(sharpness)
 
+        // Apply shadows adjustment
         editedBitmap.applyShadows(shadows)
 
         return editedBitmap
@@ -577,6 +633,7 @@ class BasicEditing : ComponentActivity() {
         canvas.drawBitmap(this, 0f, 0f, paint)
     }
 
+
     private fun Bitmap.applySharpness(sharpness: Float) {
         val editedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
 
@@ -659,16 +716,4 @@ class BasicEditing : ComponentActivity() {
 
     }
 
-}
-@Composable
-fun Button(name: String, isSelected: Boolean, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .padding(horizontal = 4.dp)
-            .size(75.dp)
-            .border(width = 5.dp, color = if (isSelected) Color.White else Color.Transparent, shape = RoundedCornerShape(8.dp))
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-    }
 }
