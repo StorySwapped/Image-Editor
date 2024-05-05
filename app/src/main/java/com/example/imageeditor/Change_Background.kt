@@ -140,8 +140,7 @@ class ChangeBackground : ComponentActivity() {
 
                 Box(
                     modifier = Modifier
-                        .size(550.dp)
-                        .background(Color.Black),
+                        .size(520.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     displayed?.let {
@@ -153,42 +152,36 @@ class ChangeBackground : ComponentActivity() {
                         )
                     }
                 }
-
                 Row(
                     modifier = Modifier
-                        .padding(4.dp)
-                        .horizontalScroll(rememberScrollState())
-                        .background(Color.Black),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.Bottom
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.SpaceBetween,
 
                 ) {
                     Box(
                         modifier = Modifier
-                            .absolutePadding(left = 4.dp, right = 4.dp, top = 20.dp)
-                            .size(70.dp)
-                            .background(
-                                color = Color(android.graphics.Color.parseColor("#451D5A")),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .border(width = 3.dp, color = if (selectedColor == android.graphics.Color.TRANSPARENT) Color.White else Color.Transparent, shape = RoundedCornerShape(8.dp))
+                            .absolutePadding(left = 10.dp, right = 140.dp, top = 10.dp, bottom = 5.dp)
+                            .size(45.dp)
+                            .background(color = Color.DarkGray, shape = RoundedCornerShape(8.dp))
+                            .border(width = 2.dp, color = if (selectedColor == TRANSPARENT) Color.White else Color.Transparent, shape = RoundedCornerShape(8.dp))
                             .clickable {
                                 selectedColor = TRANSPARENT
-                                displayed = initial },
+                                displayed = initial
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_none),
                             contentDescription = "Remove Background",
-                            
+
                             modifier = Modifier.size(30.dp),
                             contentScale = ContentScale.Fit
                         )
                     }
                     Box(
                         modifier = Modifier
-                            .absolutePadding(left = 4.dp, right = 4.dp, top = 4.dp)
-                            .size(70.dp)
+                            .absolutePadding(left = 130.dp, right = 10.dp, top = 10.dp)
+                            .size(45.dp)
                             .background(
                                 color = Color.DarkGray,
                                 shape = RoundedCornerShape(8.dp)
@@ -203,11 +196,20 @@ class ChangeBackground : ComponentActivity() {
                             contentScale = ContentScale.Fit
                         )
                     }
+                }
+                Row(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.Bottom
+
+                ) {
                     Box(
                         modifier = Modifier
                             .absolutePadding(left = 4.dp, right = 4.dp, top = 4.dp)
                             .size(70.dp)
-                            .background(Color(android.graphics.Color.parseColor("#002D7A")), shape = RoundedCornerShape(8.dp))
+                            .background(Color(android.graphics.Color.parseColor("#451D5A")), shape = RoundedCornerShape(8.dp))
                             .clickable { onUploadImageClick() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -258,7 +260,7 @@ class ChangeBackground : ComponentActivity() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .absolutePadding(left = 10.dp, top = 20.dp, right = 10.dp),
+                        .absolutePadding(left = 10.dp, top = 10.dp, right = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
 
