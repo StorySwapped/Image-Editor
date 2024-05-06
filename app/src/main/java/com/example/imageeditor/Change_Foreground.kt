@@ -1,12 +1,18 @@
 package com.example.imageeditor
 
 import android.app.Activity
+import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.PointF
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.MotionEvent
+import android.widget.Button
+import android.widget.ImageView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
@@ -39,6 +45,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -144,8 +151,7 @@ class ChangeForeground : ComponentActivity() {
 
                 Box(
                     modifier = Modifier
-                        .height(560.dp)
-                        .fillMaxWidth()
+                        .height(570.dp)
                         .padding(bottom = 7.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -173,7 +179,7 @@ class ChangeForeground : ComponentActivity() {
                             .size(80.dp)
                             .padding(4.dp)
                             .background(
-                                color = Color(android.graphics.Color.parseColor("#451D5A")),
+                                color = Color.Gray,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .clickable { displayed = initial },
@@ -186,6 +192,27 @@ class ChangeForeground : ComponentActivity() {
                             contentScale = ContentScale.Fit
                         )
                     }
+
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .padding(4.dp)
+                            .background(
+                                color = Color(android.graphics.Color.parseColor("#451D5A")),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .clickable {  startColorPicker() },
+                        contentAlignment = Alignment.Center
+                    )
+                    {
+                        Image(
+                            painter = painterResource(id = R.drawable.select),
+                            contentDescription = "Remove Background",
+                            modifier = Modifier.size(40.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+
 
                     eachButton(color = android.graphics.Color.RED) { applyColor(it) }
                     eachButton(color = android.graphics.Color.GREEN) { applyColor(it) }
@@ -326,6 +353,68 @@ class ChangeForeground : ComponentActivity() {
         )
     }
 
+    private fun startColorPicker() {
+        displayed?.let { bitmap ->
+            val touchPoint = PointF(0f, 0f)
+            val colorPickerDialog = ColorPickerDialog(this, bitmap, touchPoint)
+            colorPickerDialog.setOnColorPickedListener { color ->
+                applyColor(color)
+                selectedColor = color
+            }
+            colorPickerDialog.show()
+        }
+    }
+    class ColorPickerDialog(
+        private val context: Context,
+        private val bitmap: Bitmap,
+        private val touchPoint: PointF
+    ) : Dialog(context) {
+
+        private lateinit var colorPickedListener: (Color) -> Unit
+
+        fun setOnColorPickedListener(listener: (Color) -> Unit) {
+            colorPickedListener = listener
+        }
+
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            setContentView(R.layout.color_picker_dialog)
+
+            val imageView = findViewById<ImageView>(R.id.image_view)
+            imageView.setImageBitmap(bitmap)
+
+            imageView.setOnTouchListener { v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        // Calculate the scale factor
+                        val scaleFactorX = bitmap.width.toFloat() / imageView.width
+                        val scaleFactorY = bitmap.height.toFloat() / imageView.height
+
+                        // Adjust touch coordinates
+                        val x = (event.x * scaleFactorX).toInt()
+                        val y = (event.y * scaleFactorY).toInt()
+
+                        // Check boundaries
+                        if (x in 0 until bitmap.width && y in 0 until bitmap.height) {
+                            val pixel = bitmap.getPixel(x, y)
+                            val color = Color(pixel)
+                            colorPickedListener(color)
+                            dismiss()
+                        }
+                    }
+                }
+                true
+            }
+
+        // Setup the cancel button
+            val cancelButton = findViewById<Button>(R.id.cancel_button)
+            cancelButton.setOnClickListener {
+                dismiss() // Dismiss the dialog when the cancel button is clicked
+            }
+        }
+    }
+
+
 
     @Composable
     fun eachButton(color: Int, onClick: (Color) -> Unit) {
@@ -461,7 +550,7 @@ class ChangeForeground : ComponentActivity() {
 
 
     private suspend fun removeBackgroundAPI(file: File): ByteArray {
-        val apiKey = "21p2Sp9LkaGAgL1rBhw3ZHFc"
+        val apiKey = "YbCGzVAX9tyooZmMJv8VsSxv"
         val client = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)

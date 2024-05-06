@@ -227,7 +227,6 @@ class BasicEditing : ComponentActivity() {
                 .fillMaxWidth()
                 .height(170.dp)
                 .absolutePadding(top = 15.dp, left = 16.dp, right = 16.dp)
-                .verticalScroll(scrollState)
         ) {
             Column(
                 modifier = Modifier
@@ -244,9 +243,9 @@ class BasicEditing : ComponentActivity() {
 
                 Row(
                     modifier = Modifier
-                        .horizontalScroll(scrollState)
                         .fillMaxWidth()
-                        .absolutePadding(top = 5.dp, bottom = 2.dp),
+                        .absolutePadding(top = 5.dp, bottom = 2.dp)
+                        .horizontalScroll(scrollState),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 )
                 {
@@ -443,7 +442,7 @@ class BasicEditing : ComponentActivity() {
             modifier = Modifier
                 .padding(horizontal = 4.dp)
                 .width(80.dp)
-                .height(80.dp)
+                .height(85.dp)
                 .clickable(onClick = onClick)
                 .background(
                     Color(android.graphics.Color.parseColor("#281340")),
@@ -488,12 +487,12 @@ class BasicEditing : ComponentActivity() {
     fun EditingFeatureSlider(
         value: Float,
         onValueChange: (Float) -> Unit,
-        colors: SliderColors = SliderDefaults.colors(
-            thumbColor = Color(android.graphics.Color.parseColor("#009900")),
-            activeTrackColor = Color(android.graphics.Color.parseColor("#009900")),
+        color: SliderColors = SliderDefaults.colors(
+            thumbColor = Color.White,
+            activeTrackColor = Color.White,
             inactiveTrackColor = Color.DarkGray
         ),
-        range: ClosedFloatingPointRange<Float> = 0.1f..2f,// Default range
+        range: ClosedFloatingPointRange<Float> = 0f..2f,// Default range
 
     ) {
         Slider(
@@ -501,6 +500,7 @@ class BasicEditing : ComponentActivity() {
             onValueChange = onValueChange,
             valueRange = range,
             steps = 1000,
+            colors = color
         )
 
     }
