@@ -1,5 +1,6 @@
 package com.example.imageeditor
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
 import android.content.Context
@@ -376,6 +377,7 @@ class ChangeForeground : ComponentActivity() {
             colorPickedListener = listener
         }
 
+        @SuppressLint("ClickableViewAccessibility")
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             setContentView(R.layout.color_picker_dialog)

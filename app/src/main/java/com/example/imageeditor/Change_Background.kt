@@ -1,16 +1,22 @@
 package com.example.imageeditor
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color.TRANSPARENT
 import android.graphics.Matrix
+import android.graphics.PointF
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.MotionEvent
+import android.widget.Button
+import android.widget.ImageView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
@@ -160,7 +166,7 @@ class ChangeBackground : ComponentActivity() {
                     ) {
                     Box(
                         modifier = Modifier
-                            .absolutePadding(left = 10.dp, right = 140.dp, top = 10.dp, bottom = 5.dp)
+                            .absolutePadding(left = 10.dp, top = 10.dp, bottom = 5.dp)
                             .size(45.dp)
                             .background(color = Color.DarkGray, shape = RoundedCornerShape(8.dp))
                             .border(width = 2.dp, color = if (selectedColor == TRANSPARENT) Color.White else Color.Transparent, shape = RoundedCornerShape(8.dp))
@@ -180,7 +186,29 @@ class ChangeBackground : ComponentActivity() {
                     }
                     Box(
                         modifier = Modifier
-                            .absolutePadding(left = 130.dp, right = 10.dp, top = 10.dp)
+                            .absolutePadding(left = 190.dp, right = 10.dp, top = 10.dp)
+                            .size(45.dp)
+                            .background(
+                                color = Color.DarkGray,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .clickable {
+                                hex_popup = true
+                                selectedColor = TRANSPARENT
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_addv),
+                            contentDescription = "Add Value",
+                            modifier = Modifier.size(30.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .absolutePadding(left = 10.dp, right = 10.dp, top = 10.dp)
                             .size(45.dp)
                             .background(
                                 color = Color.DarkGray,
@@ -188,11 +216,12 @@ class ChangeBackground : ComponentActivity() {
                             )
                             .clickable { displayed = initial },
                         contentAlignment = Alignment.Center
-                    ) {
+                    )
+                    {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_addv),
-                            contentDescription = "Add Value",
-                            modifier = Modifier.size(30.dp),
+                            painter = painterResource(id = R.drawable.select),
+                            contentDescription = "Remove Background",
+                            modifier = Modifier.size(40.dp),
                             contentScale = ContentScale.Fit
                         )
                     }
@@ -352,7 +381,59 @@ class ChangeBackground : ComponentActivity() {
     }
 
 
+    private fun startColorPicker() {
 
+    }
+    class ColorPickerDialog(
+        private val context: Context,
+        private val bitmap: Bitmap,
+        private val touchPoint: PointF
+    ) : Dialog(context) {
+
+        private lateinit var colorPickedListener: (Color) -> Unit
+
+        fun setOnColorPickedListener(listener: (Color) -> Unit) {
+            colorPickedListener = listener
+        }
+
+        @SuppressLint("ClickableViewAccessibility")
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            setContentView(R.layout.color_picker_dialog)
+
+            val imageView = findViewById<ImageView>(R.id.image_view)
+            imageView.setImageBitmap(bitmap)
+
+            imageView.setOnTouchListener { v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        // Calculate the scale factor
+                        val scaleFactorX = bitmap.width.toFloat() / imageView.width
+                        val scaleFactorY = bitmap.height.toFloat() / imageView.height
+
+                        // Adjust touch coordinates
+                        val x = (event.x * scaleFactorX).toInt()
+                        val y = (event.y * scaleFactorY).toInt()
+
+                        // Check boundaries
+                        if (x in 0 until bitmap.width && y in 0 until bitmap.height) {
+                            val pixel = bitmap.getPixel(x, y)
+                            val color = Color(pixel)
+                            colorPickedListener(color)
+                            dismiss()
+                        }
+                    }
+                }
+                true
+            }
+
+            // Setup the cancel button
+            val cancelButton = findViewById<Button>(R.id.cancel_button)
+            cancelButton.setOnClickListener {
+                dismiss() // Dismiss the dialog when the cancel button is clicked
+            }
+        }
+    }
     @Composable
     fun showBoxTick() {
         AlertDialog(
