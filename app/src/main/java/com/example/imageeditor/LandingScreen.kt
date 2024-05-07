@@ -64,11 +64,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.graphics.Color.parseColor
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import kotlinx.coroutines.delay
 
 
 class LandingScreen : ComponentActivity() {
@@ -81,13 +90,90 @@ class LandingScreen : ComponentActivity() {
                     color = Color(parseColor("#653355")),
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    ImageEditorScreen()
+                    Animation()
                 }
             }
         }
     }
 }
-var button_color = "#351D4A"
+
+@Composable
+fun Animation() {
+    var animationFinished by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        delay(5500L)
+        animationFinished = true
+    }
+
+    val infiniteTransition = rememberInfiniteTransition()
+    val yOffset by infiniteTransition.animateFloat(
+        initialValue = -400f,
+        targetValue = 400f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1500),
+            repeatMode = RepeatMode.Reverse
+        ), label = ""
+    )
+
+
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 0.7f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1500),
+            repeatMode = RepeatMode.Reverse
+        ), label = ""
+    )
+
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment
+            .Center
+
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.back17), // Replace R.drawable.background_image with your image resource
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        if (animationFinished) {
+            ImageEditorScreen()
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .graphicsLayer(translationY = yOffset)
+            ) {
+                Text(
+                    text = "Image Editor",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontFamily = FontFamily.Cursive,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 60.sp
+                    ),
+                    color = Color(parseColor("#D0D0D0")),
+
+                )
+
+                Image(
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = "Logo",
+                    modifier = Modifier
+                        .size(150.dp)
+                        .graphicsLayer(scaleX = scale, scaleY = scale)
+                )
+            }
+        }
+    }
+}
+
+
+    var button_color = "#351D4A"
 
 @Composable
 fun ImageEditorScreen() {
