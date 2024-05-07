@@ -160,6 +160,7 @@ class ChangeBackground : ComponentActivity() {
                 }
                 Row(
                     modifier = Modifier
+                        .absolutePadding(top = 10.dp)
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.SpaceBetween,
 
@@ -186,7 +187,7 @@ class ChangeBackground : ComponentActivity() {
                     }
                     Box(
                         modifier = Modifier
-                            .absolutePadding(left = 190.dp, right = 10.dp, top = 10.dp)
+                            .absolutePadding(left = 210.dp, right = 10.dp, top = 10.dp)
                             .size(45.dp)
                             .background(
                                 color = Color.DarkGray,
