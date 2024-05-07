@@ -1,8 +1,5 @@
 package com.example.imageeditor
 
-import android.app.Activity
-import android.content.ContentValues
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -11,18 +8,14 @@ import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.absolutePadding
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,8 +27,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,9 +39,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -67,7 +56,6 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.cos
 import kotlin.math.sin
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderColors
 import androidx.compose.material3.SliderDefaults
 
@@ -190,14 +178,14 @@ class BasicEditing : ComponentActivity() {
     @Composable
     fun EditingOptions() {
         var currentEditFeature by remember { mutableStateOf("brightness") } // Track the current editing feature
-        var sliderValue by remember { mutableStateOf(1f) } // The value to adjust, tied to the current editing feature
+        var sliderValue by remember { mutableFloatStateOf(1f) } // The value to adjust, tied to the current editing feature
 
-        var brightness by remember { mutableStateOf(1f) }
-        var contrast by remember { mutableStateOf(1f) }
-        var hue by remember { mutableStateOf(0f) }
-        var saturation by remember { mutableStateOf(1f) }
-        var sharpness by remember { mutableStateOf(0f) }
-        var shadows by remember { mutableStateOf(0f) }
+        var brightness by remember { mutableFloatStateOf(1f) }
+        var contrast by remember { mutableFloatStateOf(1f) }
+        var hue by remember { mutableFloatStateOf(0f) }
+        var saturation by remember { mutableFloatStateOf(1f) }
+        var sharpness by remember { mutableFloatStateOf(0f) }
+        var shadows by remember { mutableFloatStateOf(0f) }
 
         val originalBitmap = original ?: return
 
@@ -348,16 +336,16 @@ class BasicEditing : ComponentActivity() {
         }
 
         if (tickConfirmation) {
-            showBoxTick()
+            ShowBoxTick()
         }
 
         if (crossConfirmation) {
-            showBoxCross()
+            ShowBoxCross()
         }
     }
 
     @Composable
-    fun showBoxTick() {
+    fun ShowBoxTick() {
         AlertDialog(
             onDismissRequest = { tickConfirmation = false },
             title = {
@@ -369,7 +357,7 @@ class BasicEditing : ComponentActivity() {
             confirmButton = {
                 Button(
                     onClick = {
-                        sendtoMain(displayed?.asAndroidBitmap())
+                        sendToMain(displayed?.asAndroidBitmap())
                         tickConfirmation = false
                     }, colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Black
@@ -391,7 +379,7 @@ class BasicEditing : ComponentActivity() {
     }
 
     @Composable
-    fun showBoxCross() {
+    fun ShowBoxCross() {
         AlertDialog(
             onDismissRequest = { crossConfirmation = false },
             title = {
@@ -403,7 +391,7 @@ class BasicEditing : ComponentActivity() {
             confirmButton = {
                 Button(
                     onClick = {
-                        sendtoMain(initial)
+                        sendToMain(initial)
                         crossConfirmation = false
                     }, colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Black
@@ -471,14 +459,14 @@ class BasicEditing : ComponentActivity() {
         }
     }
 
-    private fun sendtoMain(bitmap: Bitmap?) {
+    private fun sendToMain(bitmap: Bitmap?) {
         bitmap?.let {
             val file = File(cacheDir, "image_next.jpg")
             it.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(file))
             val intent = Intent().apply {
                 putExtra("imageUri", file.toUri().toString())
             }
-            setResult(Activity.RESULT_OK, intent)
+            setResult(RESULT_OK, intent)
             finish()
         }
     }
@@ -503,19 +491,6 @@ class BasicEditing : ComponentActivity() {
             colors = color
         )
 
-    }
-
-    private fun saveBitmap(context: Context, bitmap: Bitmap): Uri {
-        val savedImageUri = context.contentResolver.insert(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            ContentValues()
-        ) ?: throw RuntimeException("Failed to insert image into MediaStore")
-
-        context.contentResolver.openOutputStream(savedImageUri)?.use { outputStream ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
-        } ?: throw RuntimeException("Failed to open output stream for image")
-
-        return savedImageUri
     }
 
     private fun applyEdits(
@@ -671,9 +646,7 @@ class BasicEditing : ComponentActivity() {
     }
 
     private fun Bitmap.applySharpness(sharpness: Float) {
-        val editedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
 
-        // Apply sharpening effect
         val pixels = IntArray(width * height)
         getPixels(pixels, 0, width, 0, 0, width, height)
 
@@ -723,9 +696,7 @@ class BasicEditing : ComponentActivity() {
     }
 
     private fun Bitmap.applyShadows(shadows: Float) {
-        val editedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
 
-        // Apply shadows adjustment
         val pixels = IntArray(width * height)
         getPixels(pixels, 0, width, 0, 0, width, height)
 

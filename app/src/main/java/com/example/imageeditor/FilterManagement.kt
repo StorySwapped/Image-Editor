@@ -66,8 +66,6 @@ import java.io.FileOutputStream
 
 
 class FilterManagement : ComponentActivity() {
-    public var tickConfirmation by mutableStateOf(false)
-    public var crossConfirmation by mutableStateOf(false)
     companion object {
         const val IMAGE_URI_EXTRA = "imageUri"
     }
@@ -152,16 +150,14 @@ fun MyComposeScreen(context: Context,bitmap: Bitmap) {
                 bitmap = imageToShow,
                 contentDescription = null,
                 modifier = Modifier
-                    .height(530.dp)
-                    .padding(bottom = 7.dp)
+                    .height(540.dp)
                     .fillMaxSize()
             )
 
             // Buttons Row
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 5.dp),
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Absolute.Right
 
             ) {
