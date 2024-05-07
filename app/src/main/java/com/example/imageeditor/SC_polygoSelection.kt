@@ -1,18 +1,12 @@
 package com.example.imageeditor
 
-import android.content.ContentValues
-import android.content.Context
+import android.app.Activity
 import android.content.Intent
-import android.content.Intent.getIntent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.ImageDecoder
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -24,7 +18,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,7 +32,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -49,14 +41,17 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import java.util.LinkedList
 import java.util.Queue
-import androidx.compose.ui.res.imageResource
-import com.canhub.cropper.CropImage.CancelledResult.bitmap
+import androidx.core.net.toUri
+import java.io.File
+import java.io.FileOutputStream
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 
 class SC_polygoSelection : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.P)
@@ -65,8 +60,7 @@ class SC_polygoSelection : ComponentActivity() {
 
         setContent {
             val byteArray = intent?.getByteArrayExtra("image")
-            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, 150000)
-
+            val bitmap = byteArray?.let { BitmapFactory.decodeByteArray(it, 0, 150000) }
 
             if (bitmap != null) {
 
@@ -78,47 +72,39 @@ class SC_polygoSelection : ComponentActivity() {
     }
 
 
-    fun returnToMain() {
-        val i = Intent(applicationContext, LandingScreen::class.java)
-        startActivity(i)
-        finish()
+    private fun returnToMain(bitmap: Bitmap?) {
+        bitmap?.let {
+            val file = File(cacheDir, "image_next.jpg")
+            it.compress(Bitmap.CompressFormat.JPEG, 100, FileOutputStream(file))
+            val intent = Intent().apply {
+                putExtra("imageUri", file.toUri().toString())
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            setResult(Activity.RESULT_OK, intent)
+            finish()
+        }
     }
 
 
     @Composable
     fun PolygonCropWrapper(imageBitmap: ImageBitmap) {
         val scope = rememberCoroutineScope()
-        val context = LocalContext.current
         val points = remember { mutableStateListOf<Offset>() }
-
         val bitmapPoints = remember { mutableStateListOf<Offset>() }
+        var croppedImageBitmap = remember { mutableStateOf(imageBitmap) }
+        var flag = true  // Editing mode flag
 
-        var croppedImageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
-        var flag = true
-
-        val bitmapHeight = imageBitmap.height
-        val bitmapWidth = imageBitmap.width
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.DarkGray),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(modifier = Modifier.fillMaxSize().background(Color.DarkGray)) {
             Row(
-                modifier = Modifier
-                    .fillMaxHeight(0.1f)
-                    .fillMaxWidth()
-                    .background(Color.Black)
-                    .padding(horizontal = 20.dp),
+                modifier = Modifier.fillMaxHeight(0.1f).fillMaxWidth().background(Color.Black).padding(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(onClick = {
-                    returnToMain()
-                }) {
-                    Text("Back")
+                Button(
+                    onClick = {
+                        returnToMain(polygonCrop(imageBitmap, bitmapPoints).asAndroidBitmap())
+                    }) {
+                    Text("Save")
                 }
 
                 Button(onClick = {
@@ -126,78 +112,50 @@ class SC_polygoSelection : ComponentActivity() {
                         croppedImageBitmap.value = polygonCrop(imageBitmap, bitmapPoints)
                         flag = false
                     }
-
                 }) {
-                    Text("Save")
+                    Text("Crop")
                 }
             }
 
             Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxSize()
-                    .background(Color.DarkGray),
+                modifier = Modifier.weight(1f).fillMaxSize().background(Color.DarkGray),
                 contentAlignment = Alignment.Center
             ) {
-                if (croppedImageBitmap.value != null) {
-//                    BitmapObject.bitmap =
-//                        croppedImageBitmap.value?.asAndroidBitmap() ?: BitmapObject.bitmap
-                    Image(
-                        bitmap = croppedImageBitmap.value!!,
-                        contentDescription = "Cropped Image",
-                        contentScale = ContentScale.Fit
-                    )
-                } else {
-                    Canvas(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(4 / 3f)
-                            .clipToBounds()
-                            .pointerInput(Unit) {
-                                detectTapGestures { offset ->
-                                    val adjustedOffset = Offset(
-                                        offset.x * bitmapWidth / size.width,
-                                        offset.y * bitmapHeight / size.height
-                                    )
-                                    points.add(offset)
+                Image(
+                    bitmap = croppedImageBitmap.value,
+                    contentDescription = "Cropped Image",
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier.matchParentSize()
+                )
 
-                                    if (flag == true)
-                                        bitmapPoints.add(adjustedOffset)
-
-                                    //println(points.toList())
-                                    //println(bitmapPoints.toList())
-                                }
-                            }
-                    ) {
-                        val canvasWidth = size.width.toInt()
-                        val canvasHeight = size.height.toInt()
-                        drawImage(
-                            image = imageBitmap,
-                            dstSize = IntSize(canvasWidth, canvasHeight)
+                Canvas(modifier = Modifier.matchParentSize().pointerInput(Unit) {
+                    detectTapGestures { offset ->
+                        // Ensure proper scaling between touch points and bitmap coordinates
+                        val scaleX = imageBitmap.width.toFloat() / size.width
+                        val scaleY = imageBitmap.height.toFloat() / size.height
+                        val adjustedOffset = Offset(offset.x * scaleX, offset.y * scaleY)
+                        points.add(offset)
+                        if (flag) bitmapPoints.add(adjustedOffset)
+                        Log.d("DebugPoints", "Screen: $offset, Bitmap: $adjustedOffset")
+                    }
+                }) {
+                    if (points.isNotEmpty()) {
+                        drawPath(
+                            path = Path().apply {
+                                moveTo(points.first().x, points.first().y)
+                                points.forEach { lineTo(it.x, it.y) }
+                                close()
+                            },
+                            color = Color.Red,
+                            style = Stroke(width = 5f)
                         )
-
-                        if (points.size > 1) {
-                            drawPath(
-                                path = Path().apply {
-                                    points.forEachIndexed { index, point ->
-                                        if (index == 0) moveTo(
-                                            point.x,
-                                            point.y
-                                        ) else lineTo(point.x, point.y)
-                                    }
-                                },
-                                color = Color.Red,
-                                style = Stroke(width = 5f)
-                            )
-                        }
                     }
                 }
             }
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
-    suspend fun polygonCrop(
+    private fun polygonCrop (
         imageBitmap: ImageBitmap,
         points: SnapshotStateList<Offset>
     ): ImageBitmap {
@@ -274,8 +232,7 @@ class SC_polygoSelection : ComponentActivity() {
         croppedBitmap = addBorder(croppedBitmap, 1)
         val newImageBitmap: Bitmap = floodFill(croppedBitmap, 0, 0)
 
-        val composeBitmap: ImageBitmap = newImageBitmap.asImageBitmap()
-        return composeBitmap
+        return newImageBitmap.asImageBitmap()
     }
 
     fun bresenhamLine(x0: Int, y0: Int, x1: Int, y1: Int): List<Pair<Int, Int>> {

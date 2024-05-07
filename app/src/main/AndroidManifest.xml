@@ -76,6 +76,9 @@
             android:name=".SelectionaAndcropping"
             android:theme="@style/Theme.ImageEditor"
             android:exported="true">
+            <intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <activity

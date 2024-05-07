@@ -629,28 +629,7 @@ fun DrawingScreen(contextForSending: Context,bitmap: ImageBitmap) {
 }
 
 
-@Composable
-fun clonetoolicon(isClicked: Boolean, onClicked: () -> Unit) {
-    Button(
-        onClick = {
-            onClicked()
-        },
-        modifier = Modifier.background(Color.Black), // Set background color here
-        colors = ButtonDefaults.textButtonColors(
-            //backgroundColor = Color.Red, // Change button color here
-            contentColor = Color.Yellow
-        )// Change text color here
-    ) {
-        Text(
-            text = "Clone tool",
-            fontSize = 20.sp,
-        )
-    }
-}
-
-
-
-@Composable
+/*@Composable
 fun CloneTool(bitmap: ImageBitmap)
 {
     var boxPosition by remember { mutableStateOf(Offset(0f, 0f)) }
@@ -676,6 +655,257 @@ fun CloneTool(bitmap: ImageBitmap)
         )
     }
 }
+*/
+/*
+@Composable
+fun CloneTool(bitmap: ImageBitmap) {
+    var selectedArea: ImageBitmap? by remember { mutableStateOf(null) }
+    var clickPosition: Offset? by remember { mutableStateOf(null) }
+    var confirm by remember { mutableStateOf(false) }
+    Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(450.dp)
+                    .border(4.dp, Color.Black)
+                    .pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            clickPosition = offset
+                            val touchX = offset.x.toInt()
+                            val touchY = offset.y.toInt()
+
+                            // Calculate the selected area immediately after the user clicks
+                            val startX = touchX - 10
+                            val startY = touchY - 10
+                            val endX = touchX + 10
+                            val endY = touchY + 10
+
+                            val width = 20f
+                            val height = 20f
+                            selectedArea = Bitmap.createBitmap(
+                                bitmap.asAndroidBitmap(),
+                                startX.toInt(),
+                                startY.toInt(),
+                                width.toInt(),
+                                height.toInt()
+                            ).asImageBitmap()
+                        }
+                    }
+            ) {
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(450.dp),
+                    contentScale = ContentScale.FillWidth
+                )
+
+                if(confirm!=false) {
+                    // Draw the selected area if it exists
+                    selectedArea?.let { area ->
+                        Image(
+                            bitmap = area,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .offset {
+                                    IntOffset(
+                                        (clickPosition!!.x).toInt(),
+                                        (clickPosition!!.y).toInt()
+                                    )
+                                }
+                                .background(Color.Transparent.copy(alpha = 0.5f))
+                        )
+                    }
+                }
+            }
+        Button(
+            onClick = {
+                      confirm=true
+            },
+            modifier = Modifier.wrapContentSize(Alignment.Center)
+        ) {
+            Text("Confirm")
+        }
+    }
+}
+*/
+
+@Composable
+fun CloneTool(bitmap: ImageBitmap) {
+
+    val imageBitmap = bitmap
+    var selectionStart by remember { mutableStateOf<Offset?>(null) }
+    var selectionEnd by remember { mutableStateOf<Offset?>(null) }
+    var brushBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    val clonePositions = remember { mutableStateListOf<Offset>() }
+    // State to handle confirmation dialog visibility
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+// Temporary bitmap to store the selected area before confirmation
+    var tempBrushBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var showSelectionButton by remember { mutableStateOf(true) }
+    var isSelecting by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.SpaceAround,
+        horizontalAlignment = Alignment.CenterHorizontally
+
+    ) {
+
+        Row {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Box(
+                    modifier = Modifier
+                        .height(600.dp)
+                        .absolutePadding(top = 10.dp, bottom = 20.dp),
+                ) {
+                    Image(
+                        bitmap = imageBitmap,
+                        contentDescription = "Editable Image",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    SelectableImageView(
+                        onStartSelection = { offset -> selectionStart = offset },
+                        onSelectionChange = { offset -> selectionEnd = offset },
+                        onSelectionEnd = { start, end ->
+                            tempBrushBitmap = createBitmapFromSelection(imageBitmap, start, end)
+                            showConfirmationDialog = true
+                        },
+                        selectionStart = selectionStart,
+                        selectionEnd = selectionEnd
+                    )
+                }
+                // Show confirmation dialog when the user has completed a selection
+                Column() {
+                    if (showSelectionButton) {
+                        IconButton(
+                            onClick = {
+                                isSelecting = true
+                                showConfirmationDialog=true
+                                showSelectionButton =
+                                    false // Hide the button when selection starts
+                            },
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .background(Color(android.graphics.Color.parseColor(button_color)), shape = RoundedCornerShape(15.dp))
+                                .width(80.dp)
+                        ) {
+                            Text(
+                                "Proceed",
+                                color = Color.White,
+                                modifier = Modifier.padding(2.dp),
+                                textAlign = TextAlign.Center,
+                                fontSize = 16.sp,
+                                fontFamily = FontFamily(Font(R.font.sansserif)))
+
+                        }
+                    }
+
+                    if (showConfirmationDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showConfirmationDialog = false },
+                            title = { Text("Confirm Selection", color = Color.White) },
+                            text = {
+                                Text(
+                                    "Do you want to use the selected area?",
+                                    color = Color.White
+                                )
+                            },
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                        brushBitmap = tempBrushBitmap // Confirm the temporary bitmap
+                                        tempBrushBitmap = null // Clear the temporary bitmap
+                                        showConfirmationDialog = false
+                                        isSelecting = false // Stop selection mode
+                                        showSelectionButton = true // Show the selection button again
+                                    },
+
+                                    ) {
+                                    Text("OK", color = Color.White)
+                                }
+                            },
+                            dismissButton = {
+                                Button(
+                                    onClick = {
+                                        tempBrushBitmap = null // Clear the temporary bitmap
+                                        showConfirmationDialog = false
+                                        isSelecting = true // Stop selection mode
+                                        showSelectionButton =
+                                            true // Show the selection button again
+                                    },
+
+                                    ) {
+                                    Text("No", color = Color.White)
+                                }
+                            }
+                        )
+                    }
+                }
+
+                // Tap to place the brush bitmap onto the canvas
+                Modifier.pointerInput(brushBitmap != null) {
+                    detectTapGestures { offset ->
+                        brushBitmap?.let {
+                            clonePositions.add(offset)
+                        }
+                    }
+                }
+                if (!isSelecting && brushBitmap != null) {
+                    Modifier.pointerInput(true) {
+                        detectTapGestures { offset ->
+                            clonePositions.add(offset)
+                            showSelectionButton =
+                                true // Show the selection button again after pasting
+                        }
+                    }
+                }
+
+                clonePositions.forEach { position ->
+                    brushBitmap?.let { bitmap ->
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Cloned Area",
+                            modifier = Modifier
+                                .offset {
+                                    IntOffset(
+                                        position.x.toInt() - bitmap.width / 2,
+                                        position.y.toInt() - bitmap.height / 2
+                                    )
+                                }
+                        )
+                    }
+                }
+                if (isSelecting && brushBitmap != null) {
+                    Box(
+                        modifier = Modifier
+                            .size(brushBitmap!!.width.dp, brushBitmap!!.height.dp)
+                            .pointerInput(Unit) {
+                                detectTapGestures { offset ->
+                                    clonePositions.add(offset)
+                                }
+                            }
+                    ) {
+                        Image(
+                            bitmap = brushBitmap!!.asImageBitmap(),
+                            contentDescription = "Cloned Area",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 
 /*
 @Composable

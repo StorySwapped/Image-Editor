@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
@@ -52,60 +53,86 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 class SC_Middle_action : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ImageEditorTheme{
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    val uriString = intent.getStringExtra("cropped_image_uri")
-
-
-                    val croppedImageUri = uriString?.let { Uri.parse(it) }
-
-                    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-
-                    GAlS { updatedImageUri ->
-                        selectedImageUri = updatedImageUri
+            setContent {
+                ImageEditorTheme {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        MainScreen()
                     }
-
-                    Row (modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.Bottom)
-                    {
-
-                        Button(modifier = Modifier
-                            .padding(16.dp),
-                            onClick = {
-
-                            // Send both URIs to another activity
-                            val intent = Intent(this@SC_Middle_action, SC_stickerAndImage::class.java).apply {
-                                putExtra("crop_image_uri", croppedImageUri.toString())
-                                putExtra("selected_image_uri", selectedImageUri.toString())
-                            }
-                            startActivity(intent)
-
-                        })
-                        {
-                            Text(text = "Press to save without background image\nOr press Camera Icon above for background")
-                        }
-
-
-                    }
-
-
-                    //Greeting2("Android")
                 }
+
             }
         }
     }
 
+    @Composable
+    fun MainScreen() {
+        Image(
+            painter = painterResource(id = R.drawable.back17),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        val uriString = intent.getStringExtra("cropped_image_uri")
+        val croppedImageUri = uriString?.let { Uri.parse(it) }
+        var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+        GAlS { updatedImageUri ->
+            selectedImageUri = updatedImageUri
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Bottom
+        )
+        {
+
+            Button(modifier = Modifier
+                .padding(16.dp)
+                .background(
+                    Color(android.graphics.Color.parseColor("#281340")),
+                    shape = RoundedCornerShape(5.dp)
+                ),
+                onClick = {
+
+                    // Send both URIs to another activity
+                    val intent =
+                        Intent(this@SC_Middle_action, SC_stickerAndImage::class.java).apply {
+                            putExtra("crop_image_uri", croppedImageUri.toString())
+                            putExtra("selected_image_uri", selectedImageUri.toString())
+                        }
+                    startActivity(intent)
+
+                })
+
+            {
+                Text(
+                    text = "Sticker Image",
+                    color = Color(android.graphics.Color.parseColor("#D0D0D0")),
+                    modifier = Modifier.padding(top = 2.dp, bottom = 2.dp),
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp,
+                    //backgroundcolor = #281340
+                    //shape = RoundedCornerShape(15.dp)
+                    //fontFamily = FontFamily(Font(R.font.sansserif))
+                )
+            }
+
+
+        }
+    }
 
 
     @Composable
@@ -119,15 +146,10 @@ class SC_Middle_action : ComponentActivity() {
             onResult = { uri ->
                 uri?.let {
                     imageUri = it
-
                     onImageUriChanged(it) // Invoke the callback with the updated imageUri
                 }
             }
         )
-
-
-
-
 
         if (imageUri != null) {
             if (Build.VERSION.SDK_INT < 28) {
@@ -137,6 +159,13 @@ class SC_Middle_action : ComponentActivity() {
                 bitmap = ImageDecoder.decodeBitmap(source)
             }
         }
+        Image(
+            painter = painterResource(id = R.drawable.back17), // Replace R.drawable.background_image with your image resource
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
 
 
         Column(        ////selection icon
@@ -152,7 +181,14 @@ class SC_Middle_action : ComponentActivity() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Text(text = "Press Icon to Pick \nBackground Image:")
+                Text(
+                    text = "Pick Background Image ",
+                    color = Color(android.graphics.Color.parseColor("#D0D0D0")),
+                    modifier = Modifier.padding(top = 8.dp, bottom = 15.dp),
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp,
+                    //fontFamily = FontFamily(Font(R.font.sansserif))
+                )
 
                 Image(
                     painter = painterResource(id = R.drawable.baseline_photo_camera_24),
@@ -161,7 +197,7 @@ class SC_Middle_action : ComponentActivity() {
                         .clip(RectangleShape)
                         .background(Color.Gray)
                         .size(50.dp)
-                        .padding(vertical = 10.dp)
+                        .padding(vertical = 5.dp)
                         .clickable {
 
                             galleryLauncher.launch("image/*")
@@ -187,26 +223,13 @@ class SC_Middle_action : ComponentActivity() {
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .clip(RectangleShape)
-                        .background(Color.Blue)
+                        .background(Color.Black)
                         .width(300.dp)
                         .height(500.dp)
                         .padding(bottom = 32.dp)
 
 
                 )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_person_24),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clip(RectangleShape)
-                        .background(Color.Blue)
-                        .width(300.dp)
-                        .height(700.dp)
-                        .padding(bottom = 32.dp)
-
-                )
-
             }
         }
     }

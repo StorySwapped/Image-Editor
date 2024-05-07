@@ -64,11 +64,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.graphics.Color.parseColor
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.graphicsLayer
@@ -87,7 +89,6 @@ class LandingScreen : ComponentActivity() {
         setContent {
             ImageEditorTheme {
                 Surface(
-                    color = Color(parseColor("#653355")),
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     Animation()
@@ -99,13 +100,17 @@ class LandingScreen : ComponentActivity() {
 
 @Composable
 fun Animation() {
+    var startExitAnimation by remember { mutableStateOf(false) }
     var animationFinished by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        delay(5500L)
+        delay(5510L)  // Time after which the exit animation should start
+        startExitAnimation = true
+        delay(2000L)  // Additional delay to allow the exit animation to complete
         animationFinished = true
     }
 
+    // Continuous movement and scaling animation
     val infiniteTransition = rememberInfiniteTransition()
     val yOffset by infiniteTransition.animateFloat(
         initialValue = -400f,
@@ -126,28 +131,35 @@ fun Animation() {
         ), label = ""
     )
 
+    // Manage transition states for exiting the animation
+    val transition = updateTransition(targetState = startExitAnimation, label = "")
+    val exitYOffset by transition.animateFloat(
+        label = "YOffsetExit",
+        transitionSpec = { tween(durationMillis = 1000) }
+    ) { if (it) 0f else yOffset }  // Transition to 0 from current yOffset
+
+    val exitScale by transition.animateFloat(
+        label = "ScaleExit",
+        transitionSpec = { tween(durationMillis = 1000) }
+    ) { if (it) 1f else scale }  // Transition to 1 from current scale
 
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment
-            .Center
-
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.back17), // Replace R.drawable.background_image with your image resource
+            painter = painterResource(id = R.drawable.back17),
             contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
+
         if (animationFinished) {
             ImageEditorScreen()
         } else {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .graphicsLayer(translationY = yOffset)
+                modifier = Modifier.graphicsLayer(translationY = exitYOffset, scaleX = exitScale, scaleY = exitScale)
             ) {
                 Text(
                     text = "Image Editor",
@@ -157,23 +169,18 @@ fun Animation() {
                         fontSize = 60.sp
                     ),
                     color = Color(parseColor("#D0D0D0")),
-
                 )
-
                 Image(
                     painter = painterResource(id = R.drawable.logo),
                     contentDescription = "Logo",
-                    modifier = Modifier
-                        .size(150.dp)
-                        .graphicsLayer(scaleX = scale, scaleY = scale)
+                    modifier = Modifier.size(150.dp)
                 )
             }
         }
     }
 }
 
-
-    var button_color = "#351D4A"
+var button_color = "#351D4A"
 
 @Composable
 fun ImageEditorScreen() {

@@ -137,6 +137,13 @@ class SC_stickerAndImage : ComponentActivity() {
         val modifiedBitmap = remember { mutableStateOf<Bitmap?>(null) }
 
         val context = LocalContext.current
+        Image(
+            painter = painterResource(id = com.example.imageeditor.R.drawable.back17), // Replace R.drawable.background_image with your image resource
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
 
         Column {
 
@@ -163,7 +170,7 @@ class SC_stickerAndImage : ComponentActivity() {
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .background(Color.Blue)
+                    .background(Color.Black)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
