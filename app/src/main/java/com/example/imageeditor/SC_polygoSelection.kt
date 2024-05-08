@@ -60,7 +60,7 @@ class SC_polygoSelection : ComponentActivity() {
 
         setContent {
             val byteArray = intent?.getByteArrayExtra("image")
-            val bitmap = byteArray?.let { BitmapFactory.decodeByteArray(it, 0, 150000) }
+            val bitmap = byteArray?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
 
             if (bitmap != null) {
 

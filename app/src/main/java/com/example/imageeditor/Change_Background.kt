@@ -64,6 +64,7 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextField
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.toArgb
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
@@ -90,6 +91,13 @@ class ChangeBackground : ComponentActivity() {
     private var value by mutableStateOf("")
     private var error by mutableStateOf(false)
     private var hex_popup by mutableStateOf(false)
+
+    private var hexSelected by mutableStateOf(false)
+    private var hexEntered by mutableStateOf(false)
+    private var hexSelectedandEntered by mutableStateOf(false)
+    private var hexValue by mutableStateOf("")
+
+    private var selectedColorEye by mutableStateOf(android.graphics.Color.TRANSPARENT)
 
     private var initial by mutableStateOf<Bitmap?>(null)
 
@@ -207,25 +215,28 @@ class ChangeBackground : ComponentActivity() {
                         )
                     }
 
+
                     Box(
                         modifier = Modifier
-                            .absolutePadding(left = 10.dp, right = 10.dp, top = 10.dp)
+                            .absolutePadding(left = 5.dp, right = 10.dp, top = 10.dp)
                             .size(45.dp)
                             .background(
                                 color = Color.DarkGray,
                                 shape = RoundedCornerShape(8.dp)
                             )
-                            .clickable { displayed = initial },
+                            .clickable {
+                                hexSelected=true
+                            },
                         contentAlignment = Alignment.Center
-                    )
-                    {
+                    ) {
                         Image(
-                            painter = painterResource(id = R.drawable.select),
-                            contentDescription = "Remove Background",
-                            modifier = Modifier.size(40.dp),
+                            painter = painterResource(id = R.drawable.ic_brush),
+                            contentDescription = "Add Value",
+                            modifier = Modifier.size(30.dp),
                             contentScale = ContentScale.Fit
                         )
                     }
+
                 }
                 Row(
                     modifier = Modifier
@@ -235,6 +246,7 @@ class ChangeBackground : ComponentActivity() {
                     verticalAlignment = Alignment.Bottom
 
                 ) {
+
                     Box(
                         modifier = Modifier
                             .absolutePadding(left = 4.dp, right = 4.dp, top = 4.dp)
@@ -250,6 +262,25 @@ class ChangeBackground : ComponentActivity() {
                             contentScale = ContentScale.Fit,
                         )
                     }
+
+                    Box(
+                        modifier = Modifier
+                            .absolutePadding(left = 4.dp, right = 4.dp, top = 4.dp)
+                            .size(70.dp)
+                            .background(color = Color.LightGray, shape = RoundedCornerShape(8.dp))
+                            .clickable {  startColorPicker() },
+                        contentAlignment = Alignment.Center
+                    )
+                    {
+                        Image(
+                            painter = painterResource(id = R.drawable.select),
+                            contentDescription = "Remove Background",
+                            modifier = Modifier.size(40.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+
+                    if (hexEntered){hexSelectedandEntered=true}
 
                     eachButton(color = android.graphics.Color.RED,isSelected = selectedColor == android.graphics.Color.RED)  { selectedColor = it
                         applyColor(it) }
@@ -330,6 +361,55 @@ class ChangeBackground : ComponentActivity() {
                     showBoxCross()
                 }
 
+                if (hexSelected) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            hexSelected = false
+                            hexValue = ""
+                            error = false
+                        },
+                        title = {
+                            Text(text = "Enter Hex Value")
+                        },
+                        text = {
+                            Column {
+                                TextField(
+                                    value = hexValue,
+                                    onValueChange = { hexValue = it },
+                                    label = { Text("Hex Value") }
+                                )
+                                if (error) {
+                                    Text(
+                                        text = "Incorrect value",
+                                        color = Color.Red,
+                                        modifier = Modifier.padding(top = 8.dp)
+                                    )
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            error=false
+                            Button(
+                                onClick = {
+                                    if (hexValue.length == 7 && hexValue[0] == '#' && hexValue.substring(1).all { it in '0'..'9' || it in 'A'..'F' || it in 'a'..'f' }) {
+                                        hexEntered=true
+                                        hexSelected = false
+                                    } else {
+                                        hexSelected = true
+                                        error=true
+                                    }
+                                },colors = ButtonDefaults.buttonColors(
+                                    containerColor = androidx.compose.ui.graphics.Color.Black
+                                )
+
+                            ) {
+                                Text("Apply")
+                            }
+                        }
+                    )
+                }
+
+
                 if (hex_popup) {
                     AlertDialog(
                         onDismissRequest = {
@@ -382,22 +462,23 @@ class ChangeBackground : ComponentActivity() {
     }
 
 
+
     private fun startColorPicker() {
-
-    }
-    class ColorPickerDialog(
-        private val context: Context,
-        private val bitmap: Bitmap,
-        private val touchPoint: PointF
-    ) : Dialog(context) {
-
-        private lateinit var colorPickedListener: (Color) -> Unit
-
-        fun setOnColorPickedListener(listener: (Color) -> Unit) {
-            colorPickedListener = listener
+        displayed?.let { bitmap ->
+            val colorPickerDialog = ColorPickerDialog(this, bitmap ) { color ->
+                applyColor(color)
+                selectedColorEye= color
+            }
+            colorPickerDialog.show()
         }
+    }
 
-        @SuppressLint("ClickableViewAccessibility")
+    class ColorPickerDialog(
+        private val activity: Activity,
+        private val bitmap: Bitmap,
+        private val onColorPickedListener: (Int) -> Unit
+    ) : Dialog(activity) {
+
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             setContentView(R.layout.color_picker_dialog)
@@ -405,22 +486,18 @@ class ChangeBackground : ComponentActivity() {
             val imageView = findViewById<ImageView>(R.id.image_view)
             imageView.setImageBitmap(bitmap)
 
-            imageView.setOnTouchListener { v, event ->
+            imageView.setOnTouchListener { _, event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
-                        // Calculate the scale factor
                         val scaleFactorX = bitmap.width.toFloat() / imageView.width
                         val scaleFactorY = bitmap.height.toFloat() / imageView.height
 
-                        // Adjust touch coordinates
                         val x = (event.x * scaleFactorX).toInt()
                         val y = (event.y * scaleFactorY).toInt()
 
-                        // Check boundaries
                         if (x in 0 until bitmap.width && y in 0 until bitmap.height) {
                             val pixel = bitmap.getPixel(x, y)
-                            val color = Color(pixel)
-                            colorPickedListener(color)
+                            onColorPickedListener(pixel)
                             dismiss()
                         }
                     }
@@ -428,10 +505,9 @@ class ChangeBackground : ComponentActivity() {
                 true
             }
 
-            // Setup the cancel button
             val cancelButton = findViewById<Button>(R.id.cancel_button)
             cancelButton.setOnClickListener {
-                dismiss() // Dismiss the dialog when the cancel button is clicked
+                dismiss()
             }
         }
     }
@@ -543,7 +619,12 @@ class ChangeBackground : ComponentActivity() {
 
     private fun applyColor(color: Int) {
         original?.let {
-            changeBackground(it,color)
+            if (hexSelectedandEntered) {
+                processBackground(it,hexValue, Color(color))
+                hexValue = ""
+            } else {
+                changeBackground(it, color)
+            }
         }
     }
 
@@ -626,6 +707,50 @@ class ChangeBackground : ComponentActivity() {
         }
     }
 
+    private fun processBackground(bitmap: Bitmap, hexValue: String, selectedColor: Color) {
+        val enteredColor = android.graphics.Color.parseColor(hexValue)
+        val value= 100
+
+        displayed?.let { bitmap1 ->
+            val newBitmap = bitmap1.copy(Bitmap.Config.ARGB_8888, true)
+            for (x in 0 until bitmap1.width) {
+                for (y in 0 until bitmap1.height) {
+                    val colorPixel = bitmap1.getPixel(x, y)
+                    val red = android.graphics.Color.red(colorPixel)
+                    val green = android.graphics.Color.green(colorPixel)
+                    val blue = android.graphics.Color.blue(colorPixel)
+                    if (checkPixel(red, android.graphics.Color.red(enteredColor), value) &&
+                        checkPixel(green, android.graphics.Color.green(enteredColor) , value) &&
+                        checkPixel(blue, android.graphics.Color.blue(enteredColor), value)) {
+                        newBitmap.setPixel(x, y, selectedColor.toArgb())
+                    }
+                }
+            }
+
+            val scaleX = newBitmap.width.toFloat() / bitmap.width.toFloat()
+            val scaleY = newBitmap.height.toFloat() / bitmap.height.toFloat()
+            val transX = (newBitmap.width - bitmap.width * scaleX) / 2
+            val transY = (newBitmap.height - bitmap.height * scaleY) / 2
+
+            val matrix = Matrix()
+            matrix.postScale(scaleX, scaleY)
+            matrix.postTranslate(transX, transY)
+
+            val final = Bitmap.createBitmap(newBitmap.width, newBitmap.height, Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(final)
+            canvas.drawBitmap(newBitmap, 0f, 0f, null)
+            canvas.drawBitmap(bitmap, matrix, null)
+            displayed = final
+            hexSelectedandEntered = false
+            hexEntered = false
+        }
+    }
+
+    fun checkPixel(value: Int, target: Int, threshold: Int): Boolean {
+        return value >= target - threshold && value <= target + threshold
+    }
+
+
 
 
     private fun getImage(imageUri: Uri) {
@@ -686,7 +811,7 @@ class ChangeBackground : ComponentActivity() {
 
 
     private fun removeBackgroundAPI(file: File): ByteArray {
-        val apiKey = "21p2Sp9LkaGAgL1rBhw3ZHFc"
+        val apiKey = "tY2xwBFjHexzkpY1bpZyRuyu"
         val client = OkHttpClient()
         val body = MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart("image_file", "image.jpg", RequestBody.create("image/jpeg".toMediaType(), file)).build()
         val request = Request.Builder().url("https://api.remove.bg/v1.0/removebg").addHeader("X-Api-Key", apiKey).post(body).build()
